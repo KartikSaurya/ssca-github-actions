@@ -1,15 +1,19 @@
 name: Combined Workflow for SLSA Provenance, SBOM, and Policy Enforcement
 
+on:
+  workflow_dispatch:
+  release:
+    types: [created]
 
 jobs:
   combined-workflow:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
-      HARNESS_ACCOUNT_URL: 'https://reetika.pr2.harness.io'
-      HARNESS_ACCOUNT_ID: 'v7uYjYGtR4qIZAqh_Z-4DQ'
-      HARNESS_ORG_ID: 'SSCA'
-      HARNESS_PROJECT_ID: 'SSCA_Sanity_Automation'
-      HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+      HARNESS_ACCOUNT_URL: 'https://qa.harness.io'
+      HARNESS_ACCOUNT_ID: 'ppbLW9YpRharzPs_JtWT7g'
+      HARNESS_ORG_ID: 'default'
+      HARNESS_PROJECT_ID: 'SBOM_orchestration'
+      HARNESS_API_KEY: ${{ secrets.SSCA_PR_API_KEY }}
 
     steps:
       # Step 1: Checkout the main repository
@@ -19,8 +23,8 @@ jobs:
       # Step 2: Clone Additional Repository
       - name: Clone Additional Repository
         run: |
-          git clone https://github.com/nginxinc/docker-nginx.git
-          echo "Cloned additional repository: docker-nginx"
+          git clone https://github.com/KartikSaurya/cicd-goat.git
+          echo "Cloned additional repository: test"
 
       # Step 3: Log in to Docker Hub
       - name: Log in to Docker Hub
@@ -33,53 +37,53 @@ jobs:
       - name: Build and Tag Docker Image
         run: |
           cd docker-nginx
-          docker build -t reetika1999/devsecops:latest -f ./stable/alpine/Dockerfile .
-          echo "Docker image built and tagged as reetika1999/devsecops:latest."
+          docker build -t kartikey366/cicd-goat:github-actions -f ./prod/Dockerfile .
+          echo "Docker image built and tagged as kartikey366/cicd-goat:github-actions."
 
       # Step 5: Push the Docker Image to Docker Hub
       - name: Push Docker Image
         run: |
-          docker push reetika1999/devsecops:latest
+          docker push kartikey366/cicd-goat:github-actions
           echo "Docker image pushed to Docker Hub."
 
-      # Step 6: Log in to Vault
-      - name: Log in to Vault
-        uses: hashicorp/vault-action@v2
-        id: vault_login
-        with:
-          url: ${{ secrets.VAULT_URL }}
-          method: token
-          token: ${{ secrets.VAULT_TOKEN }}
+      # # Step 6: Log in to Vault
+      # - name: Log in to Vault
+      #   uses: hashicorp/vault-action@v2
+      #   id: vault_login
+      #   with:
+      #     url: ${{ secrets.VAULT_URL }}
+      #     method: token
+      #     token: ${{ secrets.VAULT_TOKEN }}
 
-      # Step 7: Set Vault Environment Variables
-      - name: Set Vault Environment Variables
-        run: |
-          echo "VAULT_ADDR=${{ secrets.VAULT_URL }}" >> $GITHUB_ENV
-          echo "VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}" >> $GITHUB_ENV
+      # # Step 7: Set Vault Environment Variables
+      # - name: Set Vault Environment Variables
+      #   run: |
+      #     echo "VAULT_ADDR=${{ secrets.VAULT_URL }}" >> $GITHUB_ENV
+      #     echo "VAULT_TOKEN=${{ steps.vault_login.outputs.token }}" >> $GITHUB_ENV
 
       # Step 8: Run SLSA Provenance Action
-      - name: Run SLSA Provenance Action
-        uses: ./slsa-provenance
-        with:
-          TARGET: 'reetika1999/devsecops:latest'
-          ATTEST: true
-          KMS_KEY: 'cosign'
+      # - name: Run SLSA Provenance Action
+      #   uses: ./slsa-generation
+      #   with:
+      #     TARGET: 'pranaycshah/node-vuln:github-actions'
+      #     ATTEST: false
+      #     KMS_KEY: 'cosign'
 
       # Step 9: Run SBOM Orchestration Action
       - name: Run SBOM Orchestration Action
-        uses: ./sbom-orchestration
+        uses: ./sbom-generation
         with:
           TOOL: 'Syft'
           FORMAT: 'spdx-json'
-          TARGET: 'reetika1999/devsecops:latest'
-          ATTEST: true
+          TARGET: 'kartikey366/cicd-goat:github-actions'
+          ATTEST: false
           KMS_KEY: 'cosign'
 
-      # Step 10: Run SBOM Policy Enforcement
+      # # Step 10: Run SBOM Policy Enforcement
       - name: Run SBOM Policy Enforcement Action
         uses: ./sbom-policy-enforcement
         with:
-          TARGET: 'reetika1999/devsecops:latest'
-          VERIFY: true
+          TARGET: 'kartikey366/cicd-goat:github-actions'
+          VERIFY: false
           KMS_KEY: 'cosign'
           POLICY_SET_REF: 'opa_policy_set_for_at'
