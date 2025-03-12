@@ -23,8 +23,8 @@ jobs:
       # Step 2: Clone Additional Repository
       - name: Clone Additional Repository
         run: |
-          git clone https://github.com/KartikSaurya/cicd-goat.git
-          echo "Cloned additional repository: test"
+          git clone https://github.com/nginxinc/docker-nginx.git
+          echo "Cloned additional repository: docker-nginx"
 
       # Step 3: Log in to Docker Hub
       - name: Log in to Docker Hub
@@ -36,14 +36,14 @@ jobs:
       # Step 4: Build and Tag Docker Image
       - name: Build and Tag Docker Image
         run: |
-          cd cicd-goat/prod
-          docker build -t kartikey366/cicd-goat:github-actions -f ./Dockerfile .
-          echo "Docker image built and tagged as kartikey366/cicd-goat:github-actions."
+          cd docker-nginx
+          docker build -t kartikey366/nginx:github-actions -f ./stable/alpine/Dockerfile .
+          echo "Docker image built and tagged as kartikey366/nginx:github-actions."
 
       # Step 5: Push the Docker Image to Docker Hub
       - name: Push Docker Image
         run: |
-          docker push kartikey366/cicd-goat:github-actions
+          docker push kartikey366/nginx:github-actions
           echo "Docker image pushed to Docker Hub."
 
       # # Step 6: Log in to Vault
@@ -62,12 +62,12 @@ jobs:
       #     echo "VAULT_TOKEN=${{ steps.vault_login.outputs.token }}" >> $GITHUB_ENV
 
       # Step 8: Run SLSA Provenance Action
-      # - name: Run SLSA Provenance Action
-      #   uses: ./slsa-generation
-      #   with:
-      #     TARGET: 'pranaycshah/node-vuln:github-actions'
-      #     ATTEST: false
-      #     KMS_KEY: 'cosign'
+      - name: Run SLSA Provenance Action
+        uses: ./slsa-generation
+        with:
+          TARGET: 'kartikey366/nginx:github-actions'
+          ATTEST: false
+          KMS_KEY: 'cosign'
 
       # Step 9: Run SBOM Orchestration Action
       - name: Run SBOM Orchestration Action
@@ -75,7 +75,7 @@ jobs:
         with:
           TOOL: 'Syft'
           FORMAT: 'spdx-json'
-          TARGET: 'kartikey366/cicd-goat:github-actions'
+          TARGET: 'kartikey366/nginx:github-actions'
           ATTEST: false
           KMS_KEY: 'cosign'
 
@@ -83,7 +83,7 @@ jobs:
       - name: Run SBOM Policy Enforcement Action
         uses: ./sbom-policy-enforcement
         with:
-          TARGET: 'kartikey366/cicd-goat:github-actions'
+          TARGET: 'kartikey366/nginx:github-actions'
           VERIFY: false
           KMS_KEY: 'cosign'
           POLICY_SET_REF: 'opa_policy_set_for_at'
