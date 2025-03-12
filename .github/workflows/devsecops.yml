@@ -36,8 +36,8 @@ jobs:
       # Step 4: Build and Tag Docker Image
       - name: Build and Tag Docker Image
         run: |
-          cd cicd-goat
-          docker build -t kartikey366/cicd-goat:github-actions -f ./prod/Dockerfile .
+          cd cicd-goat/prod
+          docker build -t kartikey366/cicd-goat:github-actions -f ./Dockerfile .
           echo "Docker image built and tagged as kartikey366/cicd-goat:github-actions."
 
       # Step 5: Push the Docker Image to Docker Hub
