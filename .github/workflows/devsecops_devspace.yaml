@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       HARNESS_ACCOUNT_URL: 'https://kartikey366.pr2.harness.io'
-      HARNESS_ACCOUNT_ID: 'xXxnRxFVRASwt_BvbVqw2g'
+      HARNESS_ACCOUNT_ID: 'F0sGl7WiQleC00_OUqZ9-Q'
       HARNESS_ORG_ID: 'default'
       HARNESS_PROJECT_ID: 'SBOM_orchestration'
       HARNESS_API_KEY: ${{ secrets.SSCA_DEV_PR_API_KEY }}
