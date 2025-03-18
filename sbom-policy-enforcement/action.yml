@@ -32,7 +32,7 @@ inputs:
 
 runs:
   using: 'docker'
-  image: 'harness/ssca-plugin:0.34.4'
+  image: 'harness/ssca-plugin:0.34.1'
   entrypoint: '/bin/ssca-plugin'
   args: 
    - github-enforce
