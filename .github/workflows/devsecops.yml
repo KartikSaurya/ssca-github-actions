@@ -80,10 +80,12 @@ jobs:
           secrets: |
             secret/data/cosign-key public_key | COSIGN_KEY
 
-      # Step 3: Debug (Optional) - Show public key
-      - name: Print Cosign Key (Optional)
+      - name: Print Cosign Key (debug only!)
         run: |
-          echo "Cosign Key= ${{env.COSIGN_KEY}}" >> $GITHUB_ENV
+          echo "Cosign Key:"
+          echo "$COSIGN_KEY" | base64
+        env:
+          COSIGN_KEY: ${{ env.COSIGN_KEY }}
       
       # # Step 11: Run SLSA Provenance Action
       # - name: Run SLSA Provenance Action
