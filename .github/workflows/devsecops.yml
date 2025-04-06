@@ -73,7 +73,7 @@ jobs:
         uses: ./slsa-generation
         with:
           TARGET: 'kartikey366/nginx:github-actions'
-          ATTEST: false
+          ATTEST: true
           KMS_KEY: 'cosign'
 
       # Step 9: Run SBOM Orchestration Action
@@ -91,6 +91,6 @@ jobs:
         uses: ./sbom-policy-enforcement
         with:
           TARGET: 'kartikey366/nginx:github-actions'
-          VERIFY: false
+          VERIFY: true
           KMS_KEY: 'cosign'
           POLICY_SET_REF: 'opa_policy_set_for_at'
