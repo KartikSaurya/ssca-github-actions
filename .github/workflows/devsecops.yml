@@ -60,13 +60,28 @@ jobs:
         run: |
           echo "VAULT_ADDR=${{ secrets.VAULT_URL }}" >> $GITHUB_ENV
           echo "VAULT_TOKEN=${{ steps.vault_login.outputs.token }}" >> $GITHUB_ENV
-
-      # Step 8: Retrieve KMS key (Cosign) from Vault
-      # Step to retrieve the public key (Cosign)
+          
+      # Step 9: Retrieve Cosign Public Key from Vault and Set It as an Environment Variable
       - name: Retrieve Cosign Public Key from Vault
+        uses: hashicorp/vault-action@v2
+        id: cosign_key
+        with:
+          url: ${{ secrets.VAULT_URL }}
+          method: token
+          token: ${{ secrets.VAULT_TOKEN }}
+          path: secret/cosign-key         # Path where the cosign key is stored in Vault
+          field: public_key              # Field to extract from the secret
+      
+      # Step 10: Set the COSIGN_KEY in the GitHub Actions environment
+      - name: Set COSIGN_KEY environment variable
         run: |
-          export COSIGN_KEY=$(vault kv get -field=public_key -mount="secret1/cosign-key" "cosign-key")
-          echo "COSIGN_KEY=$COSIGN_KEY" >> $GITHUB_ENV
+          echo "COSIGN_KEY=${{ steps.cosign_key.outputs.field }}" >> $GITHUB_ENV  # Save the key as an environment variable
+      
+      # Example step using the COSIGN_KEY
+      - name: Use Cosign Public Key
+        run: |
+          echo "The Cosign public key is: $COSIGN_KEY"
+
 
       # Step 8: Run SLSA Provenance Action
       - name: Run SLSA Provenance Action
