@@ -54,6 +54,7 @@ jobs:
           url: ${{ secrets.VAULT_URL }}
           method: token
           token: ${{ secrets.VAULT_TOKEN }}
+          outputToken: true 
 
       # Step 7: Set Vault Environment Variables
       - name: Set Vault Environment Variables
