@@ -84,6 +84,12 @@ jobs:
         run: |
           echo "COSIGN_KEY=${{env.COSIGN_KEY}}" >> $GITHUB_ENV
 
+      # Step 10.5: Login to Docker Registry for Cosign
+      - name: Cosign Login
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | cosign login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+
       # Step 11: Run SLSA Provenance Action
       - name: Run SLSA Provenance Action
         uses: ./slsa-generation
