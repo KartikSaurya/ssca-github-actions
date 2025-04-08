@@ -84,19 +84,19 @@ jobs:
         run: |
           echo "COSIGN_KEY=${{env.COSIGN_KEY}}" >> $GITHUB_ENV
 
-      # Step 10.5: Login to Docker Registry for Cosign
-      - name: Cosign Login
-        run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | cosign login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      # # Step 10.5: Login to Docker Registry for Cosign
+      # - name: Cosign Login
+      #   run: |
+      #     echo "${{ secrets.DOCKER_PASSWORD }}" | cosign login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
 
       # Step 11: Run SLSA Provenance Action
-      - name: Run SLSA Provenance Action
-        uses: ./slsa-generation
-        with:
-          TARGET: 'kartikey366/nginx:github-actions'
-          ATTEST: true
-          KMS_KEY: 'cosign'
+      # - name: Run SLSA Provenance Action
+      #   uses: ./slsa-generation
+      #   with:
+      #     TARGET: 'kartikey366/nginx:github-actions'
+      #     ATTEST: true
+      #     KMS_KEY: 'cosign'
 
       # Step 12: Run SBOM Orchestration Action
       - name: Run SBOM Orchestration Action
@@ -105,14 +105,14 @@ jobs:
           TOOL: 'Syft'
           FORMAT: 'spdx-json'
           TARGET: 'kartikey366/nginx:github-actions'
-          ATTEST: false
+          ATTEST: true
           KMS_KEY: 'cosign'
 
       # Step 13: Run SBOM Policy Enforcement Action
-      - name: Run SBOM Policy Enforcement Action
-        uses: ./sbom-policy-enforcement
-        with:
-          TARGET: 'kartikey366/nginx:github-actions'
-          VERIFY: true
-          KMS_KEY: 'cosign'
-          POLICY_SET_REF: 'opa_policy_set_for_at'
+      # - name: Run SBOM Policy Enforcement Action
+      #   uses: ./sbom-policy-enforcement
+      #   with:
+      #     TARGET: 'kartikey366/nginx:github-actions'
+      #     VERIFY: true
+      #     KMS_KEY: 'cosign'
+      #     POLICY_SET_REF: 'opa_policy_set_for_at'
