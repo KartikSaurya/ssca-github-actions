@@ -37,13 +37,13 @@ jobs:
       - name: Build and Tag Docker Image
         run: |
           cd docker-nginx
-          docker build -t kartikey366/nginx:github-actions -f ./stable/alpine/Dockerfile .
-          echo "Docker image built and tagged as kartikey366/nginx:github-actions."
+          docker build -t kartikey366/nginx-private:github-actions -f ./stable/alpine/Dockerfile .
+          echo "Docker image built and tagged as kartikey366/nginx-private:github-actions."
 
       # Step 5: Push the Docker Image to Docker Hub
       - name: Push Docker Image
         run: |
-          docker push kartikey366/nginx:github-actions
+          docker push kartikey366/nginx-private:github-actions
           echo "Docker image pushed to Docker Hub."
 
       # Step 6: Log in to Vault
@@ -94,7 +94,7 @@ jobs:
       # - name: Run SLSA Provenance Action
       #   uses: ./slsa-generation
       #   with:
-      #     TARGET: 'kartikey366/nginx:github-actions'
+      #     TARGET: 'kartikey366/nginx-private:github-actions'
       #     ATTEST: true
       #     KMS_KEY: 'cosign'
 
@@ -104,7 +104,7 @@ jobs:
         with:
           TOOL: 'Syft'
           FORMAT: 'spdx-json'
-          TARGET: 'kartikey366/nginx:github-actions'
+          TARGET: 'kartikey366/nginx-private:github-actions'
           ATTEST: true
           KMS_KEY: 'cosign'
 
@@ -112,7 +112,7 @@ jobs:
       # - name: Run SBOM Policy Enforcement Action
       #   uses: ./sbom-policy-enforcement
       #   with:
-      #     TARGET: 'kartikey366/nginx:github-actions'
+      #     TARGET: 'kartikey366/nginx-private:github-actions'
       #     VERIFY: true
       #     KMS_KEY: 'cosign'
       #     POLICY_SET_REF: 'opa_policy_set_for_at'
