@@ -1,6 +1,5 @@
 name: 'SLSA Verification'
 description: 'Github action to verify SLSA for a given artifact'
-description: 'Github action to generate Provenance'
 author: 'Reetika Mallavarapu'
 inputs:
   HARNESS_ACCOUNT_URL:
