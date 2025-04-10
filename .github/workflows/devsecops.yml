@@ -33,20 +33,26 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 4: Build and Tag Docker Image
+      # Step 4: Set Registry Environment Variables
+      - name: Set Vault Environment Variables
+        run: |
+          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> $GITHUB_ENV
+          echo "DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}" >> $GITHUB_ENV
+
+      # Step 5: Build and Tag Docker Image
       - name: Build and Tag Docker Image
         run: |
           cd docker-nginx
           docker build -t kartikey366/nginx-private:github-actions -f ./stable/alpine/Dockerfile .
           echo "Docker image built and tagged as kartikey366/nginx-private:github-actions."
 
-      # Step 5: Push the Docker Image to Docker Hub
+      # Step 6: Push the Docker Image to Docker Hub
       - name: Push Docker Image
         run: |
           docker push kartikey366/nginx-private:github-actions
           echo "Docker image pushed to Docker Hub."
 
-      # Step 6: Log in to Vault
+      # Step 7: Log in to Vault
       - name: Log in to Vault
         uses: hashicorp/vault-action@v2
         id: vault_login
@@ -56,7 +62,7 @@ jobs:
           token: ${{ secrets.VAULT_TOKEN }}
           outputToken: true
 
-      # Step 7: Verify Vault Login and Print Token
+      # Step 8: Verify Vault Login and Print Token
       - name: Verify Vault Login and Print Token
         run: |
           echo "Vault login successful."
@@ -64,39 +70,28 @@ jobs:
         env:
           VAULT_TOKEN: ${{ steps.vault_login.outputs.token }}  # Ensuring token is accessible
 
-      # Step 8: Set Vault Environment Variables
+      # Step 9: Set Vault Environment Variables
       - name: Set Vault Environment Variables
         run: |
           echo "VAULT_ADDR=${{ secrets.VAULT_URL }}" >> $GITHUB_ENV
           echo "VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}" >> $GITHUB_ENV
 
-      # Step 2: Authenticate with Vault and Fetch Secrets
-      - name: Fetch Cosign Key from Vault
-        uses: hashicorp/vault-action@v2
+
+      # Step 10: Run SLSA Provenance Action
+      - name: Run SLSA Provenance Action
+        uses: ./slsa-generation
         with:
-          url: ${{ secrets.VAULT_URL }}
-          method: token
-          token: ${{ secrets.VAULT_TOKEN }}
-          secrets: |
-            secret/data/cosign-key public_key | COSIGN_KEY
-
-      - name: Print Cosign Key (debug only!)
-        run: |
-          echo "COSIGN_KEY=${{env.COSIGN_KEY}}" >> $GITHUB_ENV
-
-      # # Step 10.5: Login to Docker Registry for Cosign
-      # - name: Cosign Login
-      #   run: |
-      #     echo "${{ secrets.DOCKER_PASSWORD }}" | cosign login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
+          TARGET: 'kartikey366/nginx-private:github-actions'
+          ATTEST: true
+          KMS_KEY: 'cosign'
 
       # Step 11: Run SLSA Provenance Action
-      # - name: Run SLSA Provenance Action
-      #   uses: ./slsa-generation
-      #   with:
-      #     TARGET: 'kartikey366/nginx-private:github-actions'
-      #     ATTEST: true
-      #     KMS_KEY: 'cosign'
+      -  name: SLSA Verification
+         uses: ./slsa-verification
+         with:
+           TARGET: 'kartikey366/nginx-private:github-actions'
+           VERIFY: true
+           KMS_KEY: 'cosign'
 
       # Step 12: Run SBOM Orchestration Action
       - name: Run SBOM Orchestration Action
@@ -109,10 +104,10 @@ jobs:
           KMS_KEY: 'cosign'
 
       # Step 13: Run SBOM Policy Enforcement Action
-      # - name: Run SBOM Policy Enforcement Action
-      #   uses: ./sbom-policy-enforcement
-      #   with:
-      #     TARGET: 'kartikey366/nginx-private:github-actions'
-      #     VERIFY: true
-      #     KMS_KEY: 'cosign'
-      #     POLICY_SET_REF: 'opa_policy_set_for_at'
+      - name: Run SBOM Policy Enforcement Action
+        uses: ./sbom-policy-enforcement
+        with:
+          TARGET: 'kartikey366/nginx-private:github-actions'
+          VERIFY: true
+          KMS_KEY: 'cosign'
+          POLICY_SET_REF: 'opa_policy_set_for_at'
