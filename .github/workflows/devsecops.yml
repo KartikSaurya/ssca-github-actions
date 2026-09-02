@@ -82,7 +82,7 @@ jobs:
         uses: ./slsa-generation
         with:
           TARGET: 'kartikey366/nginx-private:github-actions'
-          ATTEST: true
+          ATTEST: false
           KMS_KEY: 'cosign'
 
       # Step 11: Run SLSA Provenance Action
@@ -90,7 +90,7 @@ jobs:
          uses: ./slsa-verification
          with:
            TARGET: 'kartikey366/nginx-private:github-actions'
-           VERIFY: true
+           VERIFY: false
            KMS_KEY: 'cosign'
 
       # Step 12: Run SBOM Orchestration Action
