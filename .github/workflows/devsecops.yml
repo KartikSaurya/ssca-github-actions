@@ -77,21 +77,21 @@ jobs:
           echo "VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}" >> $GITHUB_ENV
 
 
-      # Step 10: Run SLSA Provenance Action
-      - name: Run SLSA Provenance Action
-        uses: ./slsa-generation
-        with:
-          TARGET: 'kartikey366/nginx-private:github-actions'
-          ATTEST: false
-          KMS_KEY: 'cosign'
+      # # Step 10: Run SLSA Provenance Action
+      # - name: Run SLSA Provenance Action
+      #   uses: ./slsa-generation
+      #   with:
+      #     TARGET: 'kartikey366/nginx-private:github-actions'
+      #     ATTEST: false
+      #     KMS_KEY: 'cosign'
 
-      # Step 11: Run SLSA Provenance Action
-      -  name: SLSA Verification
-         uses: ./slsa-verification
-         with:
-           TARGET: 'kartikey366/nginx-private:github-actions'
-           VERIFY: false
-           KMS_KEY: 'cosign'
+      # # Step 11: Run SLSA Provenance Action
+      # -  name: SLSA Verification
+      #    uses: ./slsa-verification
+      #    with:
+      #      TARGET: 'kartikey366/nginx-private:github-actions'
+      #      VERIFY: false
+      #      KMS_KEY: 'cosign'
 
       # Step 12: Run SBOM Orchestration Action
       - name: Run SBOM Orchestration Action
