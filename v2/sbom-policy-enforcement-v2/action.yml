@@ -115,11 +115,16 @@ runs:
         fi
         PLUGIN_IMAGE="${{ inputs.plugin_image }}"
         ENV_FILE="$(mktemp)"
-        env | grep -E '^(HARNESS_|GITHUB_|SBOM_|SOURCE_|PLUGIN_|SSCA_|VAULT_|DOCKER_|ATTEST_|POLICY_|VERIFY_|REPO_|SLSA_|REGISTRY_|KMS_|GCP_|RUNNER_|ACTIONS_ID_TOKEN|OIDC_)' > "$ENV_FILE" || true
+        env | grep -E '^(HARNESS_|GITHUB_|SBOM_|SOURCE_|PLUGIN_|SSCA_|VAULT_|DOCKER_|ATTEST_|POLICY_|VERIFY_|REPO_|SLSA_|REGISTRY_|KMS_|GCP_|RUNNER_|ACTIONS_ID_TOKEN|OIDC_|FULCIO_)' > "$ENV_FILE" || true
         if [ -n "${PLUGIN_NON_HARNESS_OIDC_TOKEN:-}" ]; then
           echo "PLUGIN_NON_HARNESS_OIDC_TOKEN=${PLUGIN_NON_HARNESS_OIDC_TOKEN}" >> "$ENV_FILE"
         fi
+        EXTRA_DOCKER_ARGS=()
+        if [ -S /var/run/docker.sock ]; then
+          EXTRA_DOCKER_ARGS+=(-v /var/run/docker.sock:/var/run/docker.sock)
+        fi
         docker run --rm \
+          "${EXTRA_DOCKER_ARGS[@]}" \
           -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
           -w "${GITHUB_WORKSPACE}" \
           --env-file "$ENV_FILE" \

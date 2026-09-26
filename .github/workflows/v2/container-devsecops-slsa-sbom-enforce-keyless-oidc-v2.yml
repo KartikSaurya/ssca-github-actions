@@ -1,5 +1,4 @@
-# Container image DevSecOps using GitHub OIDC keyless signing (Fulcio), not Vault or GCP KMS.
-# Flow: SLSA provenance → SBOM generation → SBOM policy enforcement.
+# Container DevSecOps (keyless OIDC): SLSA attest + verify, SBOM generate + enforce — aligned with Jenkins V2.
 name: "V2 Container — SLSA + SBOM + Enforce (Keyless OIDC)"
 
 on:
@@ -17,7 +16,11 @@ jobs:
       HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
       HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
       HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+      HARNESS_SSCA_SERVICE_ENDPOINT: ${{ vars.HARNESS_SSCA_SERVICE_ENDPOINT }}
       HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+      PLUGIN_REGISTRY: index.docker.io
+      OIDC_PROVIDER: non-harness
+      FULCIO_URL: ${{ vars.FULCIO_URL }}
       SSCA_PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
       SLSA_PLUGIN_IMAGE: harness/slsa-plugin:test-githubV2
       ARTIFACT_IMAGE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
@@ -27,7 +30,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Log in to container registry
-        if: ${{ secrets.DOCKER_USERNAME != '' }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -42,9 +44,27 @@ jobs:
           harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
           slsa_source: ${{ env.ARTIFACT_IMAGE }}
           registry_type: docker
-          attest_slsa: ${{ vars.ATTEST_SLSA || 'false' }}
+          attest_slsa: ${{ vars.ATTEST_SLSA || 'true' }}
+          keyless_type: non-harness
+          docker_username: ${{ secrets.DOCKER_USERNAME }}
+          docker_password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: SLSA verification with keyless OIDC
+        uses: ./v2/slsa-verification-v2
+        with:
+          plugin_image: ${{ env.SLSA_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          slsa_source: ${{ env.ARTIFACT_IMAGE }}
+          registry_type: docker
+          verify_slsa: ${{ vars.VERIFY_SLSA || 'true' }}
           keyless_type: non-harness
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
@@ -58,11 +78,13 @@ jobs:
           harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
           sbom_source: ${{ env.ARTIFACT_IMAGE }}
           source_type: image
           sbom_tool: ${{ vars.SBOM_TOOL || 'Syft' }}
-          sbom_format: ${{ vars.SBOM_FORMAT || 'spdx-json' }}
-          attest_sbom: ${{ vars.ATTEST_SBOM || 'false' }}
+          sbom_format: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
+          sbom_destination: harness
+          attest_sbom: ${{ vars.ATTEST_SBOM || 'true' }}
           keyless_type: non-harness
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
@@ -76,10 +98,11 @@ jobs:
           harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
           sbom_source: ${{ env.ARTIFACT_IMAGE }}
           source_type: image
-          verify_sbom: ${{ vars.VERIFY_SBOM || 'false' }}
-          policy_set_ref: ${{ vars.OPA_POLICY_SET_REF }}
+          verify_sbom: ${{ vars.VERIFY_SBOM || 'true' }}
+          policy_set_ref: ${{ vars.OPA_POLICY_SET_REF || 'my_opa_policy_set' }}
           keyless_type: non-harness
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}

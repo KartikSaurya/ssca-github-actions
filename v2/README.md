@@ -16,7 +16,7 @@ V2 uses env names (`SOURCE_TYPE`, `SBOM_SOURCE`, `REPO_*`, …) and `github-*` p
 V1 actions expose **`KMS_KEY`** for HashiCorp Vault transit signing (see `../sbom-generation/action.yml`).  
 V2 actions use input **`kms_key`**, which maps to plugin env **`KMS_KEY`** (also accepted: `VAULT_COSIGN_KEY_PATH` in the plugin, but workflows/actions standardize on **`KMS_KEY`**).
 
-Set repository variable **`KMS_KEY`** to your Vault transit key name (default in samples: `cosign`).
+Set repository variable **`KMS_KEY`** to your Vault transit key name (Jenkins/devspace sample: `SSCA_AUTOMATION_COSIGN_KEY`).
 
 ## V2 workflows (by artifact type × signing method)
 
@@ -34,17 +34,29 @@ GCP Cloud KMS is not covered by these samples (use plugin GCP env vars in a cust
 
 ## Configuration
 
-**Secrets:** `HARNESS_API_KEY`, `VAULT_URL`, `VAULT_TOKEN` (Vault flows), optional `DOCKER_USERNAME` / `DOCKER_PASSWORD`
+**Secrets:** `HARNESS_API_KEY`, `VAULT_ADDR`, `VAULT_TOKEN` (Vault flows), optional `DOCKER_USERNAME` / `DOCKER_PASSWORD`
 
-**Variables:**
+**Variables (Jenkins/devspace-aligned defaults):**
+
+| Variable | Example / purpose |
+|----------|-------------------|
+| `HARNESS_ACCOUNT_URL` | `https://saas-central-devspace.harness-test.com` |
+| `HARNESS_ACCOUNT_ID` | `4JLD9j1VRGC2My2H9i2lrg` |
+| `HARNESS_ORG_ID` | `default` |
+| `HARNESS_PROJECT_ID` | `Github` |
+| `HARNESS_SSCA_SERVICE_ENDPOINT` | `https://saas-central-devspace.harness-test.com/gateway/ssca-manager/` |
+| `FULCIO_URL` | `https://saas-central-devspace.harness-test.com/gateway/harness-fulcio/` |
+| `KMS_KEY` | `SSCA_AUTOMATION_COSIGN_KEY` |
+| `DEVSECOPS_TARGET_IMAGE` | `kartikey366/nginx:test1` |
+| `GIT_REPO_URL`, `GIT_BRANCH` | Repository SBOM samples (`Buggy-App`, `main`) |
+| `OPA_POLICY_SET_REF` | `my_opa_policy_set` |
+
+Non-container workflows build `artifacts/scs-sample-app.zip` in-runner (no `NON_CONTAINER_WORKSPACE` var required).
+
+**Legacy variables (optional):**
 
 | Variable | Used for |
 |----------|----------|
-| `HARNESS_ACCOUNT_URL`, `HARNESS_ACCOUNT_ID`, `HARNESS_ORG_ID`, `HARNESS_PROJECT_ID` | All flows |
-| `KMS_KEY` | Vault KMS transit key path (same as V1) |
-| `DEVSECOPS_TARGET_IMAGE` | Container image ref |
-| `NON_CONTAINER_WORKSPACE` | Path to file in repo, e.g. `dist/app.jar` |
-| `NON_CONTAINER_ARTIFACT_NAME`, `NON_CONTAINER_ARTIFACT_VERSION` | Optional non-container metadata |
 | Plugin images (testing) | V2 workflows pin `harness/ssca-plugin:test-githubV2`, `harness/slsa-plugin:test-githubV2`, `harness/ssca-artifact-signing-plugin:test-githubV2` |
 | `OPA_POLICY_SET_REF`, `ATTEST_SBOM`, `VERIFY_SBOM`, … | Optional behavior toggles |
 

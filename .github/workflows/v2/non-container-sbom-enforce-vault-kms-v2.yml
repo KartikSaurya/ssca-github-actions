@@ -15,29 +15,26 @@ jobs:
       HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
       HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
       HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+      HARNESS_SSCA_SERVICE_ENDPOINT: ${{ vars.HARNESS_SSCA_SERVICE_ENDPOINT }}
       HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
       SSCA_PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
       KMS_KEY: ${{ vars.KMS_KEY }}
-      NON_CONTAINER_WORKSPACE: ${{ vars.NON_CONTAINER_WORKSPACE }}
+      LOCAL_ARTIFACT: ${{ github.workspace }}/artifacts/scs-sample-app.zip
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to Vault
-        uses: hashicorp/vault-action@v3
-        id: vault_login
+      - name: Prepare non-container sample artifact
+        uses: ./.github/actions/prepare-non-container-artifact
+
+      - name: Configure Vault for plugins
+        uses: ./.github/actions/export-vault-env
         with:
-          url: ${{ secrets.VAULT_URL }}
-          method: token
-          token: ${{ secrets.VAULT_TOKEN }}
+          vault_addr: ${{ secrets.VAULT_ADDR }}
+          vault_token: ${{ secrets.VAULT_TOKEN }}
 
-      - name: Export Vault environment
-        run: |
-          echo "VAULT_ADDR=${{ secrets.VAULT_URL }}" >> "$GITHUB_ENV"
-          echo "VAULT_TOKEN=${{ steps.vault_login.outputs.token }}" >> "$GITHUB_ENV"
-
-      - name: Enforce SBOM policy on non-container artifact (Vault KMS)
+      - name: SBOM policy enforcement (Vault KMS)
         uses: ./v2/sbom-policy-enforcement-v2
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
@@ -46,13 +43,14 @@ jobs:
           harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
           source_type: local
-          sbom_source: ${{ env.NON_CONTAINER_WORKSPACE }}
-          workspace: ${{ env.NON_CONTAINER_WORKSPACE }}
-          artifact_name: ${{ vars.NON_CONTAINER_ARTIFACT_NAME }}
-          local_file_version: ${{ vars.NON_CONTAINER_ARTIFACT_VERSION }}
-          verify_sbom: ${{ vars.VERIFY_SBOM || 'false' }}
-          policy_set_ref: ${{ vars.OPA_POLICY_SET_REF }}
-          vault_address: ${{ secrets.VAULT_URL }}
+          sbom_source: ${{ env.LOCAL_ARTIFACT }}
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
+          local_file_version: v1
+          verify_sbom: ${{ vars.VERIFY_SBOM || 'true' }}
+          policy_set_ref: ${{ vars.OPA_POLICY_SET_REF || 'my_opa_policy_set' }}
+          vault_address: ${{ secrets.VAULT_ADDR }}
           vault_token: ${{ env.VAULT_TOKEN }}
-          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'cosign' }}
+          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}

@@ -1,4 +1,4 @@
-# Generate an SBOM from the checked-out repository (SOURCE_TYPE=repository) with Vault KMS attestation.
+# Generate an SBOM from a sample repository (SOURCE_TYPE=repository) with Vault KMS attestation.
 name: "V2 Repository — SBOM Generate (Vault KMS)"
 
 on:
@@ -15,26 +15,29 @@ jobs:
       HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
       HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
       HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+      HARNESS_SSCA_SERVICE_ENDPOINT: ${{ vars.HARNESS_SSCA_SERVICE_ENDPOINT }}
       HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
       SSCA_PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
       KMS_KEY: ${{ vars.KMS_KEY }}
+      GIT_REPO_URL: ${{ vars.GIT_REPO_URL || 'https://github.com/KartikSaurya/Buggy-App.git' }}
+      GIT_BRANCH: ${{ vars.GIT_BRANCH || 'main' }}
 
     steps:
-      - name: Checkout
+      - name: Checkout actions repo
         uses: actions/checkout@v4
 
-      - name: Log in to Vault
-        uses: hashicorp/vault-action@v3
-        id: vault_login
+      - name: Checkout sample application repository
+        uses: actions/checkout@v4
         with:
-          url: ${{ secrets.VAULT_URL }}
-          method: token
-          token: ${{ secrets.VAULT_TOKEN }}
+          repository: KartikSaurya/Buggy-App
+          ref: ${{ env.GIT_BRANCH }}
+          path: sample-repo
 
-      - name: Export Vault environment for plugins
-        run: |
-          echo "VAULT_ADDR=${{ secrets.VAULT_URL }}" >> "$GITHUB_ENV"
-          echo "VAULT_TOKEN=${{ steps.vault_login.outputs.token }}" >> "$GITHUB_ENV"
+      - name: Configure Vault for plugins
+        uses: ./.github/actions/export-vault-env
+        with:
+          vault_addr: ${{ secrets.VAULT_ADDR }}
+          vault_token: ${{ secrets.VAULT_TOKEN }}
 
       - name: Repository SBOM with Vault KMS
         uses: ./v2/repo-sbom-generation-v2
@@ -45,9 +48,16 @@ jobs:
           harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          repo_url: ${{ env.GIT_REPO_URL }}
+          repo_path: KartikSaurya/Buggy-App
+          repo_variant: ${{ env.GIT_BRANCH }}
+          repo_variant_type: branch
+          cloned_codebase: ${{ github.workspace }}/sample-repo
           sbom_tool: ${{ vars.SBOM_TOOL || 'Syft' }}
           sbom_format: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
-          attest_sbom: ${{ vars.ATTEST_SBOM || 'false' }}
-          vault_address: ${{ secrets.VAULT_URL }}
+          sbom_destination: harness
+          attest_sbom: ${{ vars.ATTEST_SBOM || 'true' }}
+          vault_address: ${{ secrets.VAULT_ADDR }}
           vault_token: ${{ env.VAULT_TOKEN }}
-          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'cosign' }}
+          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
