@@ -1,177 +1,178 @@
-# Non-container: SBOM (generate → ingest → enforce) → SLSA → artifact signing — Vault KMS.
+# Non-container V2 E2E on QA.
+# Plugin jobs run in parallel; each plugin's subcommands run sequentially.
 name: "V2 non-container-kms"
 
 on:
   workflow_dispatch:
+    inputs:
+      attest:
+        description: "Run KMS attestation and corresponding verification steps"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
 
 jobs:
-  non-container-vault-kms:
+  ssca:
+    name: ssca
     runs-on: ubuntu-latest
-    env:
-      HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
-      HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
-      HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
-      HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
-      HARNESS_SSCA_SERVICE_ENDPOINT: ${{ vars.HARNESS_SSCA_SERVICE_ENDPOINT }}
-      HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
-      SSCA_PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
-      SLSA_PLUGIN_IMAGE: harness/slsa-plugin:test-githubV2
-      SIGNING_PLUGIN_IMAGE: harness/ssca-artifact-signing-plugin:test-githubV2
-      KMS_KEY: ${{ vars.KMS_KEY }}
-      LOCAL_ARTIFACT: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-      SBOM_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-      SLSA_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-      SOURCE_TYPE: local
-      SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH || '/tmp/sbom' }}
-
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/prepare-non-container-artifact
-      - uses: ./.github/actions/export-vault-env
-        with:
-          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
-      - name: sbom-generation
+      - name: SBOM generation (orchestrate)
         uses: ./v2/sbom-generation
         with:
-          PLUGIN_IMAGE: ${{ env.SSCA_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          SBOM_SOURCE: ${{ env.SBOM_SOURCE }}
-          PLUGIN_WORKSPACE: ${{ env.LOCAL_ARTIFACT }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
+          SOURCE_TYPE: local
+          SBOM_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           ARTIFACT_NAME: scs-sample-app.zip
           ARTIFACT_VERSION: v1
-          SBOM_TOOL: ${{ vars.SBOM_TOOL || 'Syft' }}
-          SBOM_FORMAT: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
-          PLUGIN_SBOMDESTINATION: ${{ env.SBOM_LOCAL_PATH }}
-          ATTEST_SBOM: "false"
+          SBOM_TOOL: ${{ vars.SBOM_TOOL }}
+          SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
+          PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
+          ATTEST_SBOM: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
-          KMS_KEY: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          KMS_KEY: ${{ vars.KMS_KEY }}
 
-      - name: sbom-ingestion
+      - name: Resolve SBOM file for ingestion
+        env:
+          SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH }}
+        run: |
+          SBOM_FILE="$(ls -t "$SBOM_LOCAL_PATH"/sbom_*.json 2>/dev/null | head -1)"
+          if [ -z "$SBOM_FILE" ]; then
+            echo "No SBOM file under $SBOM_LOCAL_PATH" >&2
+            exit 1
+          fi
+          echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
+
+      - name: SBOM ingestion (orchestrate)
         uses: ./v2/sbom-ingestion
         with:
-          PLUGIN_IMAGE: ${{ env.SSCA_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          SBOM_SOURCE: ${{ env.SBOM_SOURCE }}
-          PLUGIN_WORKSPACE: ${{ env.LOCAL_ARTIFACT }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
+          SOURCE_TYPE: local
+          SBOM_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           ARTIFACT_NAME: scs-sample-app.zip
           ARTIFACT_VERSION: v1
-          PLUGIN_SBOMDESTINATION: ${{ env.SBOM_LOCAL_PATH }}
-          ATTEST_SBOM: ${{ vars.ATTEST_SBOM || 'true' }}
+          PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
+          ATTEST_SBOM: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
-          KMS_KEY: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          KMS_KEY: ${{ vars.KMS_KEY }}
 
-      - name: sbom-policy-enforcement
+      - name: SBOM policy enforcement (enforce)
         uses: ./v2/sbom-policy-enforcement
         with:
-          PLUGIN_IMAGE: ${{ env.SSCA_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          SBOM_SOURCE: ${{ env.SBOM_SOURCE }}
-          PLUGIN_WORKSPACE: ${{ env.LOCAL_ARTIFACT }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
+          SOURCE_TYPE: local
+          SBOM_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           ARTIFACT_NAME: scs-sample-app.zip
           ARTIFACT_VERSION: v1
-          VERIFY_SBOM: ${{ vars.VERIFY_SBOM || 'true' }}
-          POLICY_SET_REF: ${{ vars.OPA_POLICY_SET_REF || 'my_opa_policy_set' }}
+          VERIFY_SBOM: ${{ inputs.attest }}
+          POLICY_SET_REF: ${{ vars.OPA_POLICY_SET_REF }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
-          KMS_KEY: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          KMS_KEY: ${{ vars.KMS_KEY }}
 
-      - name: slsa-attest
+  slsa:
+    name: slsa
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/prepare-non-container-artifact
+
+      - name: SLSA provenance (attest)
         uses: ./v2/slsa-generation
         with:
-          PLUGIN_IMAGE: ${{ env.SLSA_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SLSA_SOURCE: ${{ env.SLSA_SOURCE }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          PLUGIN_WORKSPACE: ${{ env.LOCAL_ARTIFACT }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
+          SOURCE_TYPE: local
+          SLSA_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           ARTIFACT_NAME: scs-sample-app.zip
           ARTIFACT_VERSION: v1
-          ATTEST_SLSA: ${{ vars.ATTEST_SLSA || 'true' }}
+          ATTEST_SLSA: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
-          KMS_KEY: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          KMS_KEY: ${{ vars.KMS_KEY }}
 
-      - name: slsa-verify
+      - name: SLSA verification
+        if: ${{ inputs.attest }}
         uses: ./v2/slsa-verification
         with:
-          PLUGIN_IMAGE: ${{ env.SLSA_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SLSA_SOURCE: ${{ env.SLSA_SOURCE }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          PLUGIN_WORKSPACE: ${{ env.LOCAL_ARTIFACT }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
+          SOURCE_TYPE: local
+          SLSA_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           ARTIFACT_NAME: scs-sample-app.zip
-          VERIFY_SLSA: ${{ vars.VERIFY_SLSA || 'true' }}
+          ARTIFACT_VERSION: v1
+          VERIFY_SLSA: "true"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
-          KMS_KEY: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          KMS_KEY: ${{ vars.KMS_KEY }}
 
-      - name: artifact-sign
+  artifact-signing:
+    name: artifact-signing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/prepare-non-container-artifact
+
+      - name: Artifact signing
         uses: ./v2/artifact-signing
         with:
-          PLUGIN_IMAGE: ${{ env.SIGNING_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          SIGNING_SOURCE: ${{ env.SLSA_SOURCE }}
-          PLUGIN_WORKSPACE: ${{ env.LOCAL_ARTIFACT }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
+          SOURCE_TYPE: local
+          SIGNING_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           ARTIFACT_NAME: scs-sample-app.zip
           ARTIFACT_VERSION: v1
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
-          KMS_KEY: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          KMS_KEY: ${{ vars.KMS_KEY }}
 
-      - name: artifact-verify
+      - name: Artifact verification
         uses: ./v2/artifact-verification
         with:
-          PLUGIN_IMAGE: ${{ env.SIGNING_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          SIGNING_SOURCE: ${{ env.SLSA_SOURCE }}
-          PLUGIN_WORKSPACE: ${{ env.LOCAL_ARTIFACT }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
+          SOURCE_TYPE: local
+          SIGNING_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           ARTIFACT_NAME: scs-sample-app.zip
+          ARTIFACT_VERSION: v1
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
-          KMS_KEY: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          KMS_KEY: ${{ vars.KMS_KEY }}

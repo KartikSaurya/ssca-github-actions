@@ -5,6 +5,12 @@ name: "V2 container-kms"
 
 on:
   workflow_dispatch:
+    inputs:
+      attest:
+        description: "Run KMS attestation and corresponding verification steps"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -33,7 +39,7 @@ jobs:
           SBOM_TOOL: ${{ vars.SBOM_TOOL }}
           SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
           PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
-          ATTEST_SBOM: "false"
+          ATTEST_SBOM: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -63,7 +69,7 @@ jobs:
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
-          ATTEST_SBOM: "false"
+          ATTEST_SBOM: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -80,7 +86,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          VERIFY_SBOM: "false"
+          VERIFY_SBOM: ${{ inputs.attest }}
           POLICY_SET_REF: ${{ vars.OPA_POLICY_SET_REF }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
@@ -108,7 +114,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          ATTEST_SLSA: "false"
+          ATTEST_SLSA: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -116,7 +122,7 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: SLSA verification
-        if: ${{ vars.VERIFY_SLSA == 'true' }}
+        if: ${{ inputs.attest }}
         uses: ./v2/slsa-verification
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
@@ -126,7 +132,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          VERIFY_SLSA: "false"
+          VERIFY_SLSA: "true"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
