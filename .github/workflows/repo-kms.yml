@@ -53,6 +53,12 @@ jobs:
 
       - name: Repository SBOM ingestion (orchestrate)
         uses: ./v2/sbom-ingestion
+        env:
+          REPO_URL: ${{ vars.GIT_REPO_URL }}
+          REPO_PATH: /
+          REPO_VARIANT: ${{ vars.GIT_BRANCH }}
+          REPO_VARIANT_TYPE: branch
+          REPO_CLONED_CODEBASE: ${{ github.workspace }}/sample-repo
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
