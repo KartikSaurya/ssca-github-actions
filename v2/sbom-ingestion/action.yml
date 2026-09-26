@@ -80,6 +80,9 @@ runs:
         SSCA_ORCHESTRATION_COSIGN_PRIVATE_KEY: ${{ inputs.cosign_private_key }}
         SSCA_ORCHESTRATION_COSIGN_PASSWORD: ${{ inputs.cosign_password }}
         PLUGIN_KEYLESS_TYPE: ${{ inputs.keyless_type }}
+        VAULT_ADDR: ${{ inputs.vault_address }}
+        VAULT_TOKEN: ${{ inputs.vault_token }}
+        KMS_KEY: ${{ inputs.kms_key }}
         DOCKER_USERNAME: ${{ inputs.docker_username }}
         DOCKER_PASSWORD: ${{ inputs.docker_password }}
         PLUGIN_WORKSPACE: ${{ inputs.workspace }}

@@ -1,4 +1,4 @@
-# Repository SBOM only (no SLSA / artifact signing for repo mode) — Vault KMS.
+# Repository: SBOM generate → ingest → enforce only — Vault KMS.
 name: "V2 repo-kms"
 
 on:
@@ -21,6 +21,7 @@ jobs:
       KMS_KEY: ${{ vars.KMS_KEY }}
       GIT_REPO_URL: ${{ vars.GIT_REPO_URL || 'https://github.com/KartikSaurya/Buggy-App.git' }}
       GIT_BRANCH: ${{ vars.GIT_BRANCH || 'main' }}
+      SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH || '/tmp/sbom' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +38,7 @@ jobs:
           vault_addr: ${{ secrets.VAULT_ADDR }}
           vault_token: ${{ secrets.VAULT_TOKEN }}
 
-      - name: SSCA — repository SBOM generate
+      - name: sbom-generation
         uses: ./v2/repo-sbom-generation
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
@@ -54,13 +55,31 @@ jobs:
           cloned_codebase: ${{ github.workspace }}/sample-repo
           sbom_tool: ${{ vars.SBOM_TOOL || 'Syft' }}
           sbom_format: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
-          sbom_destination: harness
+          sbom_destination: ${{ env.SBOM_LOCAL_PATH }}
+          attest_sbom: "false"
+          vault_address: ${{ secrets.VAULT_ADDR }}
+          vault_token: ${{ env.VAULT_TOKEN }}
+          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
+
+      - name: sbom-ingestion
+        uses: ./v2/sbom-ingestion
+        with:
+          plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          source_type: repository
+          sbom_source: ${{ env.GIT_REPO_URL }}
+          sbom_destination: ${{ env.SBOM_LOCAL_PATH }}
           attest_sbom: ${{ vars.ATTEST_SBOM || 'true' }}
           vault_address: ${{ secrets.VAULT_ADDR }}
           vault_token: ${{ env.VAULT_TOKEN }}
           kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
 
-      - name: SSCA — repository SBOM enforce
+      - name: sbom-policy-enforcement
         uses: ./v2/sbom-policy-enforcement
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}

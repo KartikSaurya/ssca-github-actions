@@ -7,14 +7,16 @@ Workflows reference local actions as `uses: ./v2/<action>`.
 
 ## E2E workflows (6 total)
 
-| Workflow | Signing | Plugins |
-|----------|---------|---------|
-| [`container-kms.yml`](../.github/workflows/container-kms.yml) | Vault KMS | SLSA + SSCA (SBOM) + artifact signing |
-| [`non-container-kms.yml`](../.github/workflows/non-container-kms.yml) | Vault KMS | SLSA + SSCA + artifact signing (local zip) |
-| [`repo-kms.yml`](../.github/workflows/repo-kms.yml) | Vault KMS | **SSCA SBOM only** (generate + enforce) |
-| [`container-keyless.yml`](../.github/workflows/container-keyless.yml) | Keyless OIDC | SLSA + SSCA + artifact signing |
-| [`non-container-keyless.yml`](../.github/workflows/non-container-keyless.yml) | Keyless OIDC | SLSA + SSCA + artifact signing |
-| [`repo-keyless.yml`](../.github/workflows/repo-keyless.yml) | Keyless OIDC | **SSCA SBOM only** |
+| Workflow | Signing | Step order |
+|----------|---------|------------|
+| [`container-kms.yml`](../.github/workflows/container-kms.yml) | Vault KMS | sbom-generation → sbom-ingestion → sbom-policy-enforcement → slsa-attest → slsa-verify → artifact-sign → artifact-verify |
+| [`non-container-kms.yml`](../.github/workflows/non-container-kms.yml) | Vault KMS | Same (local artifact) |
+| [`repo-kms.yml`](../.github/workflows/repo-kms.yml) | Vault KMS | sbom-generation (`repo-sbom-generation`) → sbom-ingestion → sbom-policy-enforcement |
+| [`container-keyless.yml`](../.github/workflows/container-keyless.yml) | Keyless OIDC | Full container sequence |
+| [`non-container-keyless.yml`](../.github/workflows/non-container-keyless.yml) | Keyless OIDC | Full non-container sequence |
+| [`repo-keyless.yml`](../.github/workflows/repo-keyless.yml) | Keyless OIDC | Repo SBOM sequence only |
+
+Generation writes to `SBOM_LOCAL_PATH` (default `/tmp/sbom`) with `attest_sbom: false`; ingestion attests/uploads.
 
 Repository mode has no SLSA or artifact-signing flows (plugin support is SBOM-only).
 

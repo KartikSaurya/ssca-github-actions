@@ -1,4 +1,4 @@
-# Container image: SLSA + SSCA + artifact signing — keyless OIDC (Fulcio).
+# Container: SBOM (generate → ingest → enforce) → SLSA → artifact signing — keyless OIDC.
 name: "V2 container-keyless"
 
 on:
@@ -25,6 +25,7 @@ jobs:
       SLSA_PLUGIN_IMAGE: harness/slsa-plugin:test-githubV2
       SIGNING_PLUGIN_IMAGE: harness/ssca-artifact-signing-plugin:test-githubV2
       ARTIFACT_IMAGE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+      SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH || '/tmp/sbom' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -33,41 +34,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: SLSA — attest
-        uses: ./v2/slsa-generation
-        with:
-          plugin_image: ${{ env.SLSA_PLUGIN_IMAGE }}
-          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
-          harness_api_key: ${{ env.HARNESS_API_KEY }}
-          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
-          harness_org_id: ${{ env.HARNESS_ORG_ID }}
-          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
-          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          slsa_source: ${{ env.ARTIFACT_IMAGE }}
-          registry_type: docker
-          attest_slsa: ${{ vars.ATTEST_SLSA || 'true' }}
-          keyless_type: non-harness
-          docker_username: ${{ secrets.DOCKER_USERNAME }}
-          docker_password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: SLSA — verify
-        uses: ./v2/slsa-verification
-        with:
-          plugin_image: ${{ env.SLSA_PLUGIN_IMAGE }}
-          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
-          harness_api_key: ${{ env.HARNESS_API_KEY }}
-          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
-          harness_org_id: ${{ env.HARNESS_ORG_ID }}
-          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
-          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          slsa_source: ${{ env.ARTIFACT_IMAGE }}
-          registry_type: docker
-          verify_slsa: ${{ vars.VERIFY_SLSA || 'true' }}
-          keyless_type: non-harness
-          docker_username: ${{ secrets.DOCKER_USERNAME }}
-          docker_password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: SSCA — SBOM generate
+      - name: sbom-generation
         uses: ./v2/sbom-generation
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
@@ -81,13 +48,31 @@ jobs:
           source_type: image
           sbom_tool: ${{ vars.SBOM_TOOL || 'Syft' }}
           sbom_format: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
-          sbom_destination: harness
+          sbom_destination: ${{ env.SBOM_LOCAL_PATH }}
+          attest_sbom: "false"
+          keyless_type: non-harness
+          docker_username: ${{ secrets.DOCKER_USERNAME }}
+          docker_password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: sbom-ingestion
+        uses: ./v2/sbom-ingestion
+        with:
+          plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          sbom_source: ${{ env.ARTIFACT_IMAGE }}
+          source_type: image
+          sbom_destination: ${{ env.SBOM_LOCAL_PATH }}
           attest_sbom: ${{ vars.ATTEST_SBOM || 'true' }}
           keyless_type: non-harness
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: SSCA — SBOM enforce
+      - name: sbom-policy-enforcement
         uses: ./v2/sbom-policy-enforcement
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
@@ -105,7 +90,41 @@ jobs:
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Artifact signing — sign
+      - name: slsa-attest
+        uses: ./v2/slsa-generation
+        with:
+          plugin_image: ${{ env.SLSA_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          slsa_source: ${{ env.ARTIFACT_IMAGE }}
+          registry_type: docker
+          attest_slsa: ${{ vars.ATTEST_SLSA || 'true' }}
+          keyless_type: non-harness
+          docker_username: ${{ secrets.DOCKER_USERNAME }}
+          docker_password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: slsa-verify
+        uses: ./v2/slsa-verification
+        with:
+          plugin_image: ${{ env.SLSA_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          slsa_source: ${{ env.ARTIFACT_IMAGE }}
+          registry_type: docker
+          verify_slsa: ${{ vars.VERIFY_SLSA || 'true' }}
+          keyless_type: non-harness
+          docker_username: ${{ secrets.DOCKER_USERNAME }}
+          docker_password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: artifact-sign
         uses: ./v2/artifact-signing
         with:
           plugin_image: ${{ env.SIGNING_PLUGIN_IMAGE }}
@@ -121,7 +140,7 @@ jobs:
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Artifact signing — verify
+      - name: artifact-verify
         uses: ./v2/artifact-verification
         with:
           plugin_image: ${{ env.SIGNING_PLUGIN_IMAGE }}
