@@ -1,10 +1,10 @@
 name: Export Vault environment
 description: Map GitHub secrets VAULT_ADDR and VAULT_TOKEN into GITHUB_ENV for plugin containers
 inputs:
-  vault_addr:
+  VAULT_ADDR:
     description: Vault server URL (GitHub secret VAULT_ADDR)
     required: true
-  vault_token:
+  VAULT_TOKEN:
     description: Vault token (GitHub secret VAULT_TOKEN)
     required: true
 runs:
@@ -13,8 +13,8 @@ runs:
     - name: Export Vault environment for plugins
       shell: bash
       env:
-        VAULT_ADDR_IN: ${{ inputs.vault_addr }}
-        VAULT_TOKEN_IN: ${{ inputs.vault_token }}
+        VAULT_ADDR_IN: ${{ inputs.VAULT_ADDR }}
+        VAULT_TOKEN_IN: ${{ inputs.VAULT_TOKEN }}
       run: |
         set -euo pipefail
         if [ -z "${VAULT_ADDR_IN}" ] || [ -z "${VAULT_TOKEN_IN}" ]; then
