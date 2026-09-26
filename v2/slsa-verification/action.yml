@@ -15,8 +15,6 @@ inputs:
     required: true
   HARNESS_PROJECT_ID:
     required: true
-  HARNESS_SSCA_SERVICE_ENDPOINT:
-    required: false
   HARNESS_SSCA_SERVICE_TOKEN:
     required: false
   SLSA_SOURCE:
@@ -66,7 +64,6 @@ runs:
         HARNESS_ACCOUNT_ID: ${{ inputs.HARNESS_ACCOUNT_ID }}
         HARNESS_ORG_ID: ${{ inputs.HARNESS_ORG_ID }}
         HARNESS_PROJECT_ID: ${{ inputs.HARNESS_PROJECT_ID }}
-        HARNESS_SSCA_SERVICE_ENDPOINT: ${{ inputs.HARNESS_SSCA_SERVICE_ENDPOINT }}
         HARNESS_SSCA_SERVICE_TOKEN: ${{ inputs.HARNESS_SSCA_SERVICE_TOKEN }}
         SLSA_SOURCE: ${{ inputs.SLSA_SOURCE }}
         SOURCE_TYPE: ${{ inputs.SOURCE_TYPE }}
@@ -102,12 +99,8 @@ runs:
         if [ -n "${PLUGIN_NON_HARNESS_OIDC_TOKEN:-}" ]; then
           echo "PLUGIN_NON_HARNESS_OIDC_TOKEN=${PLUGIN_NON_HARNESS_OIDC_TOKEN}" >> "$ENV_FILE"
         fi
-        EXTRA_DOCKER_ARGS=()
-        if [ -S /var/run/docker.sock ]; then
-          EXTRA_DOCKER_ARGS+=(-v /var/run/docker.sock:/var/run/docker.sock)
-        fi
         docker run --rm \
-          "${EXTRA_DOCKER_ARGS[@]}" \
+          -v /var/run/docker.sock:/var/run/docker.sock \
           -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
           -w "${GITHUB_WORKSPACE}" \
           --env-file "$ENV_FILE" \

@@ -107,16 +107,12 @@ runs:
         if [ -n "${PLUGIN_NON_HARNESS_OIDC_TOKEN:-}" ]; then
           echo "PLUGIN_NON_HARNESS_OIDC_TOKEN=${PLUGIN_NON_HARNESS_OIDC_TOKEN}" >> "$ENV_FILE"
         fi
-        EXTRA_DOCKER_ARGS=()
-        if [ -S /var/run/docker.sock ]; then
-          EXTRA_DOCKER_ARGS+=(-v /var/run/docker.sock:/var/run/docker.sock)
-        fi
         SBOM_PATH="${PLUGIN_SBOMDESTINATION:-/tmp/sbom}"
         SBOM_DIR="$(dirname "$SBOM_PATH")"
         mkdir -p "$SBOM_DIR"
-        EXTRA_DOCKER_ARGS+=(-v "${SBOM_DIR}:${SBOM_DIR}")
         docker run --rm \
-          "${EXTRA_DOCKER_ARGS[@]}" \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v "${SBOM_DIR}:${SBOM_DIR}" \
           -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
           -w "${GITHUB_WORKSPACE}" \
           --env-file "$ENV_FILE" \

@@ -34,7 +34,7 @@ jobs:
           SBOM_TOOL: ${{ vars.SBOM_TOOL || 'Syft' }}
           SBOM_FORMAT: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
           PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH || '/tmp/sbom' }}
-          ATTEST_SBOM: "false"
+          ATTEST_SBOM: "true"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY != '' && vars.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
@@ -68,7 +68,7 @@ jobs:
           SBOM_TOOL: ${{ vars.SBOM_TOOL || 'Syft' }}
           SBOM_FORMAT: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
           PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH || '/tmp/sbom' }}
-          ATTEST_SBOM: "false"
+          ATTEST_SBOM: "true"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY != '' && vars.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
@@ -96,7 +96,7 @@ jobs:
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
-          ATTEST_SBOM: ${{ vars.ATTEST_SBOM || 'true' }}
+          ATTEST_SBOM: "true"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY != '' && vars.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
@@ -157,7 +157,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID || 'Github' }}
           SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          ATTEST_SLSA: ${{ vars.ATTEST_SLSA || 'true' }}
+          ATTEST_SLSA: "true"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY != '' && vars.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
