@@ -5,15 +5,6 @@ name: "V2 container-kms"
 
 on:
   workflow_dispatch:
-    inputs:
-      qa_upload_only:
-        description: "Disable Vault/KMS attest & sign; validate QA upload paths (GitHub-hosted runners cannot reach internal Vault)"
-        required: false
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
 
 permissions:
   contents: read
@@ -46,7 +37,7 @@ jobs:
           SBOM_TOOL: ${{ vars.SBOM_TOOL || 'Syft' }}
           SBOM_FORMAT: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
           PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH || '/tmp/sbom' }}
-          ATTEST_SBOM: ${{ inputs.qa_upload_only == 'true' && 'false' || 'true' }}
+          ATTEST_SBOM: "true"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY != '' && vars.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
@@ -76,7 +67,7 @@ jobs:
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
-          ATTEST_SBOM: ${{ inputs.qa_upload_only == 'true' && 'false' || 'true' }}
+          ATTEST_SBOM: "true"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY != '' && vars.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
@@ -93,7 +84,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID || 'Github' }}
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          VERIFY_SBOM: ${{ inputs.qa_upload_only == 'true' && 'false' || (vars.VERIFY_SBOM || 'true') }}
+          VERIFY_SBOM: ${{ vars.VERIFY_SBOM || 'true' }}
           POLICY_SET_REF: ${{ vars.OPA_POLICY_SET_REF || 'my_opa_policy_set' }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
@@ -125,7 +116,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID || 'Github' }}
           SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          ATTEST_SLSA: ${{ inputs.qa_upload_only == 'true' && 'false' || 'true' }}
+          ATTEST_SLSA: "true"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY != '' && vars.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
@@ -133,7 +124,6 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: SLSA verification
-        if: ${{ inputs.qa_upload_only != 'true' }}
         uses: ./v2/slsa-verification
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
@@ -152,7 +142,6 @@ jobs:
 
   artifact-signing-pipeline:
     name: artifact-signing
-    if: ${{ inputs.qa_upload_only != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
