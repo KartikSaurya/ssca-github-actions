@@ -27,9 +27,9 @@ inputs:
     description: "Artifact source, e.g. node:alpine"
     required: true
   source_type:
-    description: "image | repository | local"
+    description: "docker | repository | local (Jenkins-aligned SOURCE_TYPE)"
     required: false
-    default: "image"
+    default: "docker"
   sbom_tool:
     description: "Syft | cdxgen"
     required: false

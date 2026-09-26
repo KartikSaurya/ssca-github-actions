@@ -33,6 +33,18 @@ Repository mode has no SLSA or artifact-signing flows (plugin support is SBOM-on
 
 ## Configuration
 
+**Plugin env (UPPERCASE, Jenkins-aligned)** — set on the workflow job `env:` block; composites map them into the plugin container:
+
+| Variable | Container | Non-container | Repository |
+|----------|-----------|---------------|------------|
+| `SOURCE_TYPE` | `docker` | `local` | `repository` |
+| `SBOM_SOURCE` | image ref | file path | (repo action uses `REPO_*`) |
+| `SLSA_SOURCE` | image ref | file path | — |
+
+Do **not** set legacy `PLUGIN_REGISTRY`; registry host/type is inferred from `SBOM_SOURCE` / `SLSA_SOURCE`.
+
+Composite **inputs** stay lowercase (`sbom_source`, `source_type`) per GitHub Actions; each action exports **UPPERCASE** env vars to the Docker plugin (`SBOM_SOURCE`, `SOURCE_TYPE`, …).
+
 **Secrets:** `HARNESS_API_KEY`, `VAULT_ADDR`, `VAULT_TOKEN`, optional `DOCKER_USERNAME` / `DOCKER_PASSWORD`
 
 **Variables:** `HARNESS_*`, `HARNESS_PROJECT_ID=Github`, `KMS_KEY`, `DEVSECOPS_TARGET_IMAGE`, `FULCIO_URL`, `OPA_POLICY_SET_REF`, `GIT_REPO_URL`, `GIT_BRANCH`

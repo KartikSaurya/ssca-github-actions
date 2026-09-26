@@ -22,8 +22,8 @@ inputs:
   signing_source:
     description: "Container image / artifact to sign"
     required: true
-  registry_type:
-    description: "docker | acr | gcr | ecr | gar | har | local"
+  source_type:
+    description: "docker | repository | local (Jenkins-aligned SOURCE_TYPE)"
     required: false
     default: "docker"
   upload_registry:
@@ -69,7 +69,7 @@ runs:
         HARNESS_SSCA_SERVICE_ENDPOINT: ${{ inputs.ssca_service_endpoint }}
         HARNESS_SSCA_SERVICE_TOKEN: ${{ inputs.ssca_service_token }}
         SIGNING_SOURCE: ${{ inputs.signing_source }}
-        PLUGIN_REGISTRY_TYPE: ${{ inputs.registry_type }}
+        SOURCE_TYPE: ${{ inputs.source_type }}
         UPLOAD_REGISTRY: ${{ inputs.upload_registry }}
         SSCA_ARTIFACT_SIGNING_COSIGN_PRIVATE_KEY: ${{ inputs.cosign_private_key }}
         SSCA_ARTIFACT_SIGNING_COSIGN_PASSWORD: ${{ inputs.cosign_password }}

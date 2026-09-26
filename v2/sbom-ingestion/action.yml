@@ -23,8 +23,9 @@ inputs:
     description: "Artifact the ingested SBOM describes"
     required: true
   source_type:
+    description: "docker | repository | local (Jenkins-aligned SOURCE_TYPE)"
     required: false
-    default: "image"
+    default: "docker"
   sbom_destination:
     description: "Path to the SBOM file to ingest"
     required: true

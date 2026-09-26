@@ -22,6 +22,9 @@ jobs:
       SIGNING_PLUGIN_IMAGE: harness/ssca-artifact-signing-plugin:test-githubV2
       KMS_KEY: ${{ vars.KMS_KEY }}
       LOCAL_ARTIFACT: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+      SBOM_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+      SLSA_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+      SOURCE_TYPE: local
       SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH || '/tmp/sbom' }}
 
     steps:
@@ -42,8 +45,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          source_type: local
-          sbom_source: ${{ env.LOCAL_ARTIFACT }}
+          source_type: ${{ env.SOURCE_TYPE }}
+          sbom_source: ${{ env.SBOM_SOURCE }}
           workspace: ${{ env.LOCAL_ARTIFACT }}
           artifact_name: scs-sample-app.zip
           local_file_version: v1
@@ -65,8 +68,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          source_type: local
-          sbom_source: ${{ env.LOCAL_ARTIFACT }}
+          source_type: ${{ env.SOURCE_TYPE }}
+          sbom_source: ${{ env.SBOM_SOURCE }}
           workspace: ${{ env.LOCAL_ARTIFACT }}
           artifact_name: scs-sample-app.zip
           local_file_version: v1
@@ -86,8 +89,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          source_type: local
-          sbom_source: ${{ env.LOCAL_ARTIFACT }}
+          source_type: ${{ env.SOURCE_TYPE }}
+          sbom_source: ${{ env.SBOM_SOURCE }}
           workspace: ${{ env.LOCAL_ARTIFACT }}
           artifact_name: scs-sample-app.zip
           local_file_version: v1
@@ -107,8 +110,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          slsa_source: ${{ env.LOCAL_ARTIFACT }}
-          registry_type: local
+          slsa_source: ${{ env.SLSA_SOURCE }}
+          source_type: ${{ env.SOURCE_TYPE }}
           workspace: ${{ env.LOCAL_ARTIFACT }}
           artifact_name: scs-sample-app.zip
           local_file_version: v1
@@ -127,8 +130,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          slsa_source: ${{ env.LOCAL_ARTIFACT }}
-          registry_type: local
+          slsa_source: ${{ env.SLSA_SOURCE }}
+          source_type: ${{ env.SOURCE_TYPE }}
           workspace: ${{ env.LOCAL_ARTIFACT }}
           artifact_name: scs-sample-app.zip
           verify_slsa: ${{ vars.VERIFY_SLSA || 'true' }}
@@ -146,8 +149,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          registry_type: local
-          signing_source: ${{ env.LOCAL_ARTIFACT }}
+          source_type: ${{ env.SOURCE_TYPE }}
+          signing_source: ${{ env.SLSA_SOURCE }}
           workspace: ${{ env.LOCAL_ARTIFACT }}
           artifact_name: scs-sample-app.zip
           local_file_version: v1
@@ -165,8 +168,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          registry_type: local
-          signing_source: ${{ env.LOCAL_ARTIFACT }}
+          source_type: ${{ env.SOURCE_TYPE }}
+          signing_source: ${{ env.SLSA_SOURCE }}
           workspace: ${{ env.LOCAL_ARTIFACT }}
           artifact_name: scs-sample-app.zip
           vault_address: ${{ secrets.VAULT_ADDR }}

@@ -18,13 +18,14 @@ jobs:
       HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
       HARNESS_SSCA_SERVICE_ENDPOINT: ${{ vars.HARNESS_SSCA_SERVICE_ENDPOINT }}
       HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
-      PLUGIN_REGISTRY: index.docker.io
       OIDC_PROVIDER: non-harness
       FULCIO_URL: ${{ vars.FULCIO_URL }}
       SSCA_PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
       SLSA_PLUGIN_IMAGE: harness/slsa-plugin:test-githubV2
       SIGNING_PLUGIN_IMAGE: harness/ssca-artifact-signing-plugin:test-githubV2
-      ARTIFACT_IMAGE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+      SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+      SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+      SOURCE_TYPE: docker
       SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH || '/tmp/sbom' }}
 
     steps:
@@ -44,8 +45,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          sbom_source: ${{ env.ARTIFACT_IMAGE }}
-          source_type: image
+          sbom_source: ${{ env.SBOM_SOURCE }}
+          source_type: ${{ env.SOURCE_TYPE }}
           sbom_tool: ${{ vars.SBOM_TOOL || 'Syft' }}
           sbom_format: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
           sbom_destination: ${{ env.SBOM_LOCAL_PATH }}
@@ -64,8 +65,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          sbom_source: ${{ env.ARTIFACT_IMAGE }}
-          source_type: image
+          sbom_source: ${{ env.SBOM_SOURCE }}
+          source_type: ${{ env.SOURCE_TYPE }}
           sbom_destination: ${{ env.SBOM_LOCAL_PATH }}
           attest_sbom: ${{ vars.ATTEST_SBOM || 'true' }}
           keyless_type: non-harness
@@ -82,8 +83,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          sbom_source: ${{ env.ARTIFACT_IMAGE }}
-          source_type: image
+          sbom_source: ${{ env.SBOM_SOURCE }}
+          source_type: ${{ env.SOURCE_TYPE }}
           verify_sbom: ${{ vars.VERIFY_SBOM || 'true' }}
           policy_set_ref: ${{ vars.OPA_POLICY_SET_REF || 'my_opa_policy_set' }}
           keyless_type: non-harness
@@ -100,8 +101,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          slsa_source: ${{ env.ARTIFACT_IMAGE }}
-          registry_type: docker
+          slsa_source: ${{ env.SLSA_SOURCE }}
+          source_type: ${{ env.SOURCE_TYPE }}
           attest_slsa: ${{ vars.ATTEST_SLSA || 'true' }}
           keyless_type: non-harness
           docker_username: ${{ secrets.DOCKER_USERNAME }}
@@ -117,8 +118,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          slsa_source: ${{ env.ARTIFACT_IMAGE }}
-          registry_type: docker
+          slsa_source: ${{ env.SLSA_SOURCE }}
+          source_type: ${{ env.SOURCE_TYPE }}
           verify_slsa: ${{ vars.VERIFY_SLSA || 'true' }}
           keyless_type: non-harness
           docker_username: ${{ secrets.DOCKER_USERNAME }}
@@ -134,8 +135,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          signing_source: ${{ env.ARTIFACT_IMAGE }}
-          registry_type: docker
+          signing_source: ${{ env.SLSA_SOURCE }}
+          source_type: ${{ env.SOURCE_TYPE }}
           keyless_type: non-harness
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
@@ -150,8 +151,8 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          signing_source: ${{ env.ARTIFACT_IMAGE }}
-          registry_type: docker
+          signing_source: ${{ env.SLSA_SOURCE }}
+          source_type: ${{ env.SOURCE_TYPE }}
           keyless_type: non-harness
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}

@@ -24,6 +24,7 @@ jobs:
       GIT_REPO_URL: ${{ vars.GIT_REPO_URL || 'https://github.com/KartikSaurya/Buggy-App.git' }}
       GIT_BRANCH: ${{ vars.GIT_BRANCH || 'main' }}
       SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH || '/tmp/sbom' }}
+      SOURCE_TYPE: repository
 
     steps:
       - uses: actions/checkout@v4
@@ -62,7 +63,7 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          source_type: repository
+          source_type: ${{ env.SOURCE_TYPE }}
           sbom_source: ${{ env.GIT_REPO_URL }}
           sbom_destination: ${{ env.SBOM_LOCAL_PATH }}
           attest_sbom: ${{ vars.ATTEST_SBOM || 'true' }}
@@ -78,7 +79,7 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          source_type: repository
+          source_type: ${{ env.SOURCE_TYPE }}
           sbom_source: ${{ env.GIT_REPO_URL }}
           repo_url: ${{ env.GIT_REPO_URL }}
           repo_path: KartikSaurya/Buggy-App

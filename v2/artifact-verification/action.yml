@@ -22,7 +22,8 @@ inputs:
   signing_source:
     description: "Container image / artifact to verify"
     required: true
-  registry_type:
+  source_type:
+    description: "docker | repository | local (Jenkins-aligned SOURCE_TYPE)"
     required: false
     default: "docker"
   cosign_public_key:
@@ -65,7 +66,7 @@ runs:
         HARNESS_SSCA_SERVICE_ENDPOINT: ${{ inputs.ssca_service_endpoint }}
         HARNESS_SSCA_SERVICE_TOKEN: ${{ inputs.ssca_service_token }}
         SIGNING_SOURCE: ${{ inputs.signing_source }}
-        PLUGIN_REGISTRY_TYPE: ${{ inputs.registry_type }}
+        SOURCE_TYPE: ${{ inputs.source_type }}
         SSCA_ARTIFACT_VERIFICATION_COSIGN_PUBLIC_KEY: ${{ inputs.cosign_public_key }}
         PLUGIN_KEYLESS_TYPE: ${{ inputs.keyless_type }}
         KMS_KEY: ${{ inputs.kms_key }}

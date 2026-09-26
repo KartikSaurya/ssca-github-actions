@@ -22,7 +22,8 @@ inputs:
   slsa_source:
     description: "Container image / artifact to verify provenance for"
     required: true
-  registry_type:
+  source_type:
+    description: "docker | repository | local (Jenkins-aligned SOURCE_TYPE)"
     required: false
     default: "docker"
   verify_slsa:
@@ -68,7 +69,7 @@ runs:
         HARNESS_SSCA_SERVICE_ENDPOINT: ${{ inputs.ssca_service_endpoint }}
         HARNESS_SSCA_SERVICE_TOKEN: ${{ inputs.ssca_service_token }}
         SLSA_SOURCE: ${{ inputs.slsa_source }}
-        PLUGIN_REGISTRY_TYPE: ${{ inputs.registry_type }}
+        SOURCE_TYPE: ${{ inputs.source_type }}
         VERIFY_SLSA: ${{ inputs.verify_slsa }}
         SSCA_SLSA_VERIFICATION_COSIGN_PUBLIC_KEY: ${{ inputs.cosign_public_key }}
         PLUGIN_KEYLESS_TYPE: ${{ inputs.keyless_type }}
