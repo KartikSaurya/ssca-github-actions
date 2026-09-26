@@ -62,6 +62,18 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Resolve SBOM file for ingestion
+        run: |
+          mkdir -p "${{ env.SBOM_LOCAL_PATH }}"
+          SBOM_FILE="$(ls -t "${{ env.SBOM_LOCAL_PATH }}"/sbom_*.json 2>/dev/null | head -1)"
+          if [ -z "$SBOM_FILE" ]; then
+            echo "No generated SBOM under ${{ env.SBOM_LOCAL_PATH }}" >&2
+            ls -la "${{ env.SBOM_LOCAL_PATH }}" || true
+            exit 1
+          fi
+          echo "SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
+          echo "Using SBOM file: $SBOM_FILE"
+
       - name: sbom-ingestion
         uses: ./v2/sbom-ingestion
         with:
@@ -73,7 +85,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
           SBOM_SOURCE: ${{ env.SBOM_SOURCE }}
           SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          PLUGIN_SBOMDESTINATION: ${{ env.SBOM_LOCAL_PATH }}
+          PLUGIN_SBOMDESTINATION: ${{ env.SBOM_FILE }}
           ATTEST_SBOM: ${{ vars.ATTEST_SBOM || 'true' }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
