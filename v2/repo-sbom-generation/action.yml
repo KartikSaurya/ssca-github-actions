@@ -105,7 +105,11 @@ runs:
         if [ -n "${PLUGIN_NON_HARNESS_OIDC_TOKEN:-}" ]; then
           echo "PLUGIN_NON_HARNESS_OIDC_TOKEN=${PLUGIN_NON_HARNESS_OIDC_TOKEN}" >> "$ENV_FILE"
         fi
+        SBOM_PATH="${PLUGIN_SBOMDESTINATION:-/tmp/sbom}"
+        SBOM_DIR="$(dirname "$SBOM_PATH")"
+        mkdir -p "$SBOM_DIR"
         docker run --rm \
+          -v "${SBOM_DIR}:${SBOM_DIR}" \
           -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
           -w "${GITHUB_WORKSPACE}" \
           --env-file "$ENV_FILE" \
