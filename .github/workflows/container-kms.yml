@@ -23,7 +23,6 @@ jobs:
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
       - uses: ./v2/sbom-generation
         with:
-          PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID || 'ppbLW9YpRharzPs_JtWT7g' }}
@@ -57,7 +56,6 @@ jobs:
       - name: Generate SBOM file for ingestion (isolated runner workspace)
         uses: ./v2/sbom-generation
         with:
-          PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID || 'ppbLW9YpRharzPs_JtWT7g' }}
@@ -87,7 +85,6 @@ jobs:
           echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
       - uses: ./v2/sbom-ingestion
         with:
-          PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID || 'ppbLW9YpRharzPs_JtWT7g' }}
@@ -118,7 +115,6 @@ jobs:
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
       - uses: ./v2/sbom-policy-enforcement
         with:
-          PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID || 'ppbLW9YpRharzPs_JtWT7g' }}
@@ -149,7 +145,6 @@ jobs:
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
       - uses: ./v2/slsa-generation
         with:
-          PLUGIN_IMAGE: harness/slsa-plugin:test-githubV2
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID || 'ppbLW9YpRharzPs_JtWT7g' }}
@@ -179,7 +174,6 @@ jobs:
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
       - uses: ./v2/slsa-verification
         with:
-          PLUGIN_IMAGE: harness/slsa-plugin:test-githubV2
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID || 'ppbLW9YpRharzPs_JtWT7g' }}
@@ -209,7 +203,6 @@ jobs:
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
       - uses: ./v2/artifact-signing
         with:
-          PLUGIN_IMAGE: harness/ssca-artifact-signing-plugin:test-githubV2
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID || 'ppbLW9YpRharzPs_JtWT7g' }}
@@ -238,7 +231,6 @@ jobs:
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
       - uses: ./v2/artifact-verification
         with:
-          PLUGIN_IMAGE: harness/ssca-artifact-signing-plugin:test-githubV2
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID || 'ppbLW9YpRharzPs_JtWT7g' }}

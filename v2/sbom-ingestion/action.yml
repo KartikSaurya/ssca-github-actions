@@ -110,8 +110,14 @@ runs:
         SBOM_PATH="${PLUGIN_SBOMDESTINATION:-/tmp/sbom}"
         SBOM_DIR="$(dirname "$SBOM_PATH")"
         mkdir -p "$SBOM_DIR"
+        DOCKER_SOCK_MOUNT=()
+        case "${SOURCE_TYPE:-docker}" in
+          docker|image)
+            DOCKER_SOCK_MOUNT=(-v /var/run/docker.sock:/var/run/docker.sock)
+            ;;
+        esac
         docker run --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
+          "${DOCKER_SOCK_MOUNT[@]}" \
           -v "${SBOM_DIR}:${SBOM_DIR}" \
           -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
           -w "${GITHUB_WORKSPACE}" \

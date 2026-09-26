@@ -101,8 +101,14 @@ runs:
         if [ -n "${PLUGIN_NON_HARNESS_OIDC_TOKEN:-}" ]; then
           echo "PLUGIN_NON_HARNESS_OIDC_TOKEN=${PLUGIN_NON_HARNESS_OIDC_TOKEN}" >> "$ENV_FILE"
         fi
+        DOCKER_SOCK_MOUNT=()
+        case "${SOURCE_TYPE:-docker}" in
+          docker|image)
+            DOCKER_SOCK_MOUNT=(-v /var/run/docker.sock:/var/run/docker.sock)
+            ;;
+        esac
         docker run --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
+          "${DOCKER_SOCK_MOUNT[@]}" \
           -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
           -w "${GITHUB_WORKSPACE}" \
           --env-file "$ENV_FILE" \
