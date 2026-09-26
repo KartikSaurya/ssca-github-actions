@@ -1,11 +1,13 @@
-# Container V2 E2E on QA — parallel jobs (isolated env per job; inputs passed explicitly to each composite).
+# Container V2 E2E on QA.
+# - SSCA plugin job: generation → ingestion → policy enforcement (sequential steps).
+# - SLSA and artifact-signing jobs run in parallel; each runs its subcommands sequentially.
 name: "V2 container-kms"
 
 on:
   workflow_dispatch:
     inputs:
       qa_upload_only:
-        description: "Disable Vault/KMS attest & sign; validate QA upload/enforcement paths (GitHub-hosted runners cannot reach internal Vault)"
+        description: "Disable Vault/KMS attest & sign; validate QA upload paths (GitHub-hosted runners cannot reach internal Vault)"
         required: false
         default: "true"
         type: choice
@@ -17,8 +19,8 @@ permissions:
   contents: read
 
 jobs:
-  sbom-generation:
-    name: sbom-generation
+  ssca-sbom-pipeline:
+    name: ssca-sbom
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,39 +32,8 @@ jobs:
         with:
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-      - uses: ./v2/sbom-generation
-        with:
-          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
-          HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID || 'ppbLW9YpRharzPs_JtWT7g' }}
-          HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID || 'default' }}
-          HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID || 'Github' }}
-          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
-          SOURCE_TYPE: docker
-          SBOM_TOOL: ${{ vars.SBOM_TOOL || 'Syft' }}
-          SBOM_FORMAT: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
-          PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH || '/tmp/sbom' }}
-          ATTEST_SBOM: ${{ inputs.qa_upload_only == 'true' && 'false' || 'true' }}
-          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
-          KMS_KEY: ${{ vars.KMS_KEY != '' && vars.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  sbom-ingestion:
-    name: sbom-ingestion
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - uses: ./.github/actions/export-vault-env
-        with:
-          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-      - name: Generate SBOM file for ingestion (isolated runner workspace)
+      - name: SBOM generation (orchestrate)
         uses: ./v2/sbom-generation
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
@@ -81,7 +52,8 @@ jobs:
           KMS_KEY: ${{ vars.KMS_KEY != '' && vars.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Resolve SBOM file path
+
+      - name: Resolve SBOM file for ingestion
         env:
           SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH || '/tmp/sbom' }}
         run: |
@@ -92,7 +64,9 @@ jobs:
             exit 1
           fi
           echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
-      - uses: ./v2/sbom-ingestion
+
+      - name: SBOM ingestion (orchestrate)
+        uses: ./v2/sbom-ingestion
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -109,21 +83,8 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  sbom-policy-enforcement:
-    name: sbom-policy-enforcement
-    if: ${{ inputs.qa_upload_only != 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - uses: ./.github/actions/export-vault-env
-        with:
-          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-      - uses: ./v2/sbom-policy-enforcement
+      - name: SBOM policy enforcement (enforce)
+        uses: ./v2/sbom-policy-enforcement
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -140,8 +101,8 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  slsa-attest:
-    name: slsa-attest
+  slsa-pipeline:
+    name: slsa
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -153,7 +114,9 @@ jobs:
         with:
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-      - uses: ./v2/slsa-generation
+
+      - name: SLSA provenance (attest)
+        uses: ./v2/slsa-generation
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -169,21 +132,9 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  slsa-verify:
-    name: slsa-verify
-    if: ${{ inputs.qa_upload_only != 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - uses: ./.github/actions/export-vault-env
-        with:
-          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-      - uses: ./v2/slsa-verification
+      - name: SLSA verification
+        if: ${{ inputs.qa_upload_only != 'true' }}
+        uses: ./v2/slsa-verification
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -192,15 +143,15 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID || 'Github' }}
           SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          VERIFY_SLSA: ${{ inputs.qa_upload_only == 'true' && 'false' || (vars.VERIFY_SLSA || 'true') }}
+          VERIFY_SLSA: ${{ vars.VERIFY_SLSA || 'true' }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY != '' && vars.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  artifact-sign:
-    name: artifact-sign
+  artifact-signing-pipeline:
+    name: artifact-signing
     if: ${{ inputs.qa_upload_only != 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -213,7 +164,9 @@ jobs:
         with:
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-      - uses: ./v2/artifact-signing
+
+      - name: Artifact signing
+        uses: ./v2/artifact-signing
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -228,21 +181,8 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  artifact-verify:
-    name: artifact-verify
-    if: ${{ inputs.qa_upload_only != 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - uses: ./.github/actions/export-vault-env
-        with:
-          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-      - uses: ./v2/artifact-verification
+      - name: Artifact verification
+        uses: ./v2/artifact-verification
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
