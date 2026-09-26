@@ -111,6 +111,7 @@ jobs:
 
   sbom-policy-enforcement:
     name: sbom-policy-enforcement
+    if: ${{ inputs.qa_upload_only != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -170,6 +171,7 @@ jobs:
 
   slsa-verify:
     name: slsa-verify
+    if: ${{ inputs.qa_upload_only != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
