@@ -33,7 +33,8 @@ jobs:
           SOURCE_TYPE: local
           SBOM_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_NAME: scs-sample-app.zip
+          # V2 FetchDigest currently forwards ARTIFACT_NAME as the Syft source.
+          ARTIFACT_NAME: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           ARTIFACT_VERSION: v1
           SBOM_TOOL: ${{ vars.SBOM_TOOL }}
           SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
@@ -65,7 +66,7 @@ jobs:
           SOURCE_TYPE: local
           SBOM_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_NAME: scs-sample-app.zip
+          ARTIFACT_NAME: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           ARTIFACT_VERSION: v1
           PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
           ATTEST_SBOM: ${{ inputs.attest }}
@@ -84,7 +85,7 @@ jobs:
           SOURCE_TYPE: local
           SBOM_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_NAME: scs-sample-app.zip
+          ARTIFACT_NAME: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           ARTIFACT_VERSION: v1
           VERIFY_SBOM: ${{ inputs.attest }}
           POLICY_SET_REF: ${{ vars.OPA_POLICY_SET_REF }}
