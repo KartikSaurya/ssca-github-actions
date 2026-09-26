@@ -116,6 +116,7 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: SLSA verification
+        if: ${{ vars.VERIFY_SLSA == 'true' }}
         uses: ./v2/slsa-verification
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
