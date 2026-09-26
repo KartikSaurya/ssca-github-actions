@@ -11,12 +11,12 @@ jobs:
   container-vault-kms:
     runs-on: ubuntu-latest
     env:
-      HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
-      HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
-      HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
-      HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
-      HARNESS_SSCA_SERVICE_ENDPOINT: ${{ vars.HARNESS_SSCA_SERVICE_ENDPOINT }}
-      HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+      # QA0 (https://qa.harness.io) — devspace vars unchanged for other workflows
+      HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL || 'https://qa.harness.io' }}
+      HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID || 'ppbLW9YpRharzPs_JtWT7g' }}
+      HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID || 'default' }}
+      HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID || 'Github' }}
+      HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
       SSCA_PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
       SLSA_PLUGIN_IMAGE: harness/slsa-plugin:test-githubV2
       SIGNING_PLUGIN_IMAGE: harness/ssca-artifact-signing-plugin:test-githubV2
@@ -50,7 +50,6 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
           SBOM_SOURCE: ${{ env.SBOM_SOURCE }}
           SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
           SBOM_TOOL: ${{ vars.SBOM_TOOL || 'Syft' }}
@@ -72,7 +71,6 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
           SBOM_SOURCE: ${{ env.SBOM_SOURCE }}
           SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
           PLUGIN_SBOMDESTINATION: ${{ env.SBOM_LOCAL_PATH }}
@@ -92,7 +90,6 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
           SBOM_SOURCE: ${{ env.SBOM_SOURCE }}
           SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
           VERIFY_SBOM: ${{ vars.VERIFY_SBOM || 'true' }}
@@ -112,7 +109,6 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
           SLSA_SOURCE: ${{ env.SLSA_SOURCE }}
           SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
           ATTEST_SLSA: ${{ vars.ATTEST_SLSA || 'true' }}
@@ -131,7 +127,6 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
           SLSA_SOURCE: ${{ env.SLSA_SOURCE }}
           SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
           VERIFY_SLSA: ${{ vars.VERIFY_SLSA || 'true' }}
@@ -150,7 +145,6 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
           SIGNING_SOURCE: ${{ env.SLSA_SOURCE }}
           SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
@@ -168,7 +162,6 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
           SIGNING_SOURCE: ${{ env.SLSA_SOURCE }}
           SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
