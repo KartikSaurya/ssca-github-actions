@@ -5,7 +5,7 @@ V2 lives under this directory; V1 actions remain at the repository root (`sbom-g
 | Path | Contents |
 |------|----------|
 | `v2/*-v2/` | V2 composite actions (e.g. `v2/sbom-generation-v2/action.yml`) |
-| `.github/workflows/v2/` | V2 example workflows |
+| `.github/workflows/*-v2.yml` | V2 example workflows (flat under `.github/workflows/` — GitHub does not register nested workflow subfolders) |
 
 Workflows reference local actions as `uses: ./v2/<action-dir>`.
 
@@ -22,13 +22,13 @@ Set repository variable **`KMS_KEY`** to your Vault transit key name (Jenkins/de
 
 | Artifact type | Vault KMS (`KMS_KEY`) | Keyless OIDC |
 |---------------|------------------------|--------------|
-| **Container** — SLSA + SBOM + enforce | `.github/workflows/v2/container-devsecops-slsa-sbom-enforce-vault-kms-v2.yml` | `.github/workflows/v2/container-devsecops-slsa-sbom-enforce-keyless-oidc-v2.yml` |
-| **Container** — sign + verify | `.github/workflows/v2/container-artifact-sign-and-verify-vault-kms-v2.yml` | `.github/workflows/v2/container-artifact-sign-and-verify-keyless-oidc-v2.yml` |
-| **Non-container** (`local`) — SBOM generate | `.github/workflows/v2/non-container-sbom-generate-vault-kms-v2.yml` | `.github/workflows/v2/non-container-sbom-generate-keyless-oidc-v2.yml` |
-| **Non-container** — SBOM enforce | `.github/workflows/v2/non-container-sbom-enforce-vault-kms-v2.yml` | `.github/workflows/v2/non-container-sbom-enforce-keyless-oidc-v2.yml` |
-| **Non-container** — sign + verify | `.github/workflows/v2/non-container-artifact-sign-and-verify-vault-kms-v2.yml` | `.github/workflows/v2/non-container-artifact-sign-and-verify-keyless-oidc-v2.yml` |
-| **Repository** — SBOM generate | `.github/workflows/v2/repository-sbom-generate-vault-kms-v2.yml` | `.github/workflows/v2/repository-sbom-generate-keyless-oidc-v2.yml` |
-| **Repository** — SBOM enforce | `.github/workflows/v2/repository-sbom-enforce-vault-kms-v2.yml` | `.github/workflows/v2/repository-sbom-enforce-keyless-oidc-v2.yml` |
+| **Container** — SLSA + SBOM + enforce | `container-devsecops-slsa-sbom-enforce-vault-kms-v2.yml` | `container-devsecops-slsa-sbom-enforce-keyless-oidc-v2.yml` |
+| **Container** — sign + verify | `container-artifact-sign-and-verify-vault-kms-v2.yml` | `container-artifact-sign-and-verify-keyless-oidc-v2.yml` |
+| **Non-container** (`local`) — SBOM generate | `non-container-sbom-generate-vault-kms-v2.yml` | `non-container-sbom-generate-keyless-oidc-v2.yml` |
+| **Non-container** — SBOM enforce | `non-container-sbom-enforce-vault-kms-v2.yml` | `non-container-sbom-enforce-keyless-oidc-v2.yml` |
+| **Non-container** — sign + verify | `non-container-artifact-sign-and-verify-vault-kms-v2.yml` | `non-container-artifact-sign-and-verify-keyless-oidc-v2.yml` |
+| **Repository** — SBOM generate | `repository-sbom-generate-vault-kms-v2.yml` | `repository-sbom-generate-keyless-oidc-v2.yml` |
+| **Repository** — SBOM enforce | `repository-sbom-enforce-vault-kms-v2.yml` | `repository-sbom-enforce-keyless-oidc-v2.yml` |
 
 GCP Cloud KMS is not covered by these samples (use plugin GCP env vars in a custom workflow if needed).
 

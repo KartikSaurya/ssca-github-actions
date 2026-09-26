@@ -34,4 +34,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh workflow run ".github/workflows/v2/${{ matrix.workflow_file }}" --ref "${{ github.ref_name }}"
+          gh workflow run "${{ matrix.workflow_file }}" --ref "${{ github.ref_name }}"
