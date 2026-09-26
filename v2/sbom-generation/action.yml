@@ -127,7 +127,8 @@ runs:
         if [ -S /var/run/docker.sock ]; then
           EXTRA_DOCKER_ARGS+=(-v /var/run/docker.sock:/var/run/docker.sock)
         fi
-        SBOM_DIR="${PLUGIN_SBOMDESTINATION:-/tmp/sbom}"
+        SBOM_PATH="${PLUGIN_SBOMDESTINATION:-/tmp/sbom}"
+        SBOM_DIR="$(dirname "$SBOM_PATH")"
         mkdir -p "$SBOM_DIR"
         EXTRA_DOCKER_ARGS+=(-v "${SBOM_DIR}:${SBOM_DIR}")
         docker run --rm \
