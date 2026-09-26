@@ -1,5 +1,5 @@
-# Generate an SBOM from the checked-out repository (SOURCE_TYPE=repository) with Vault KMS attestation.
-name: "V2 Repository — SBOM Generate (Vault KMS)"
+# Repository (SOURCE_TYPE=repository) SBOM policy enforcement with Vault KMS (KMS_KEY).
+name: "V2 Repository — SBOM Enforce (Vault KMS)"
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  repository-sbom-vault-kms:
+  repository-enforce-vault:
     runs-on: ubuntu-latest
     env:
       HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
@@ -31,13 +31,13 @@ jobs:
           method: token
           token: ${{ secrets.VAULT_TOKEN }}
 
-      - name: Export Vault environment for plugins
+      - name: Export Vault environment
         run: |
           echo "VAULT_ADDR=${{ secrets.VAULT_URL }}" >> "$GITHUB_ENV"
           echo "VAULT_TOKEN=${{ steps.vault_login.outputs.token }}" >> "$GITHUB_ENV"
 
-      - name: Repository SBOM with Vault KMS
-        uses: ./repo-sbom-generation-v2
+      - name: Enforce SBOM policy on repository (Vault KMS)
+        uses: ./sbom-policy-enforcement-v2
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
@@ -45,9 +45,15 @@ jobs:
           harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
-          sbom_tool: ${{ vars.SBOM_TOOL || 'Syft' }}
-          sbom_format: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
-          attest_sbom: ${{ vars.ATTEST_SBOM || 'false' }}
+          source_type: repository
+          sbom_source: ${{ github.repository }}
+          repo_url: ${{ format('{0}/{1}', github.server_url, github.repository) }}
+          repo_path: ${{ github.repository }}
+          repo_variant: ${{ github.ref_name }}
+          repo_variant_type: branch
+          repo_cloned_codebase: ${{ github.workspace }}
+          verify_sbom: ${{ vars.VERIFY_SBOM || 'false' }}
+          policy_set_ref: ${{ vars.OPA_POLICY_SET_REF }}
           vault_address: ${{ secrets.VAULT_URL }}
           vault_token: ${{ env.VAULT_TOKEN }}
           kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'cosign' }}

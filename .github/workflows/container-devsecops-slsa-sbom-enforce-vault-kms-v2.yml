@@ -20,7 +20,7 @@ jobs:
       SSCA_PLUGIN_IMAGE: ${{ vars.SSCA_PLUGIN_IMAGE }}
       SLSA_PLUGIN_IMAGE: ${{ vars.SLSA_PLUGIN_IMAGE }}
       ARTIFACT_IMAGE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
-      VAULT_COSIGN_KEY_PATH: ${{ vars.VAULT_COSIGN_KEY_PATH }}
+      KMS_KEY: ${{ vars.KMS_KEY }}
 
     steps:
       - name: Checkout
@@ -60,7 +60,7 @@ jobs:
           attest_slsa: ${{ vars.ATTEST_SLSA || 'false' }}
           vault_address: ${{ secrets.VAULT_URL }}
           vault_token: ${{ env.VAULT_TOKEN }}
-          vault_key_path: ${{ env.VAULT_COSIGN_KEY_PATH != '' && env.VAULT_COSIGN_KEY_PATH || 'cosign' }}
+          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'cosign' }}
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -80,7 +80,7 @@ jobs:
           attest_sbom: ${{ vars.ATTEST_SBOM || 'false' }}
           vault_address: ${{ secrets.VAULT_URL }}
           vault_token: ${{ env.VAULT_TOKEN }}
-          vault_key_path: ${{ env.VAULT_COSIGN_KEY_PATH != '' && env.VAULT_COSIGN_KEY_PATH || 'cosign' }}
+          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'cosign' }}
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -99,6 +99,6 @@ jobs:
           policy_set_ref: ${{ vars.OPA_POLICY_SET_REF }}
           vault_address: ${{ secrets.VAULT_URL }}
           vault_token: ${{ env.VAULT_TOKEN }}
-          vault_key_path: ${{ env.VAULT_COSIGN_KEY_PATH != '' && env.VAULT_COSIGN_KEY_PATH || 'cosign' }}
+          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'cosign' }}
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}

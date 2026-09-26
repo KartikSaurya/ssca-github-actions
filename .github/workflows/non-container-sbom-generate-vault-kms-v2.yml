@@ -1,5 +1,5 @@
-# Generate an SBOM from the checked-out repository (SOURCE_TYPE=repository) with Vault KMS attestation.
-name: "V2 Repository — SBOM Generate (Vault KMS)"
+# Non-container (SOURCE_TYPE=local) SBOM generation with HashiCorp Vault KMS (KMS_KEY).
+name: "V2 Non-Container — SBOM Generate (Vault KMS)"
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  repository-sbom-vault-kms:
+  non-container-sbom-vault:
     runs-on: ubuntu-latest
     env:
       HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
@@ -18,6 +18,7 @@ jobs:
       HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
       SSCA_PLUGIN_IMAGE: ${{ vars.SSCA_PLUGIN_IMAGE }}
       KMS_KEY: ${{ vars.KMS_KEY }}
+      NON_CONTAINER_WORKSPACE: ${{ vars.NON_CONTAINER_WORKSPACE }}
 
     steps:
       - name: Checkout
@@ -31,13 +32,13 @@ jobs:
           method: token
           token: ${{ secrets.VAULT_TOKEN }}
 
-      - name: Export Vault environment for plugins
+      - name: Export Vault environment
         run: |
           echo "VAULT_ADDR=${{ secrets.VAULT_URL }}" >> "$GITHUB_ENV"
           echo "VAULT_TOKEN=${{ steps.vault_login.outputs.token }}" >> "$GITHUB_ENV"
 
-      - name: Repository SBOM with Vault KMS
-        uses: ./repo-sbom-generation-v2
+      - name: SBOM for non-container artifact (Vault KMS)
+        uses: ./sbom-generation-v2
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
@@ -45,6 +46,11 @@ jobs:
           harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          source_type: local
+          sbom_source: ${{ env.NON_CONTAINER_WORKSPACE }}
+          workspace: ${{ env.NON_CONTAINER_WORKSPACE }}
+          artifact_name: ${{ vars.NON_CONTAINER_ARTIFACT_NAME }}
+          local_file_version: ${{ vars.NON_CONTAINER_ARTIFACT_VERSION }}
           sbom_tool: ${{ vars.SBOM_TOOL || 'Syft' }}
           sbom_format: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
           attest_sbom: ${{ vars.ATTEST_SBOM || 'false' }}

@@ -1,0 +1,44 @@
+# Repository (SOURCE_TYPE=repository) SBOM policy enforcement with keyless OIDC.
+name: "V2 Repository — SBOM Enforce (Keyless OIDC)"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  repository-enforce-keyless:
+    runs-on: ubuntu-latest
+    env:
+      HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
+      HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
+      HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
+      HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+      HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+      SSCA_PLUGIN_IMAGE: ${{ vars.SSCA_PLUGIN_IMAGE }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enforce SBOM policy on repository (Keyless OIDC)
+        uses: ./sbom-policy-enforcement-v2
+        with:
+          plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          source_type: repository
+          sbom_source: ${{ github.repository }}
+          repo_url: ${{ format('{0}/{1}', github.server_url, github.repository) }}
+          repo_path: ${{ github.repository }}
+          repo_variant: ${{ github.ref_name }}
+          repo_variant_type: branch
+          repo_cloned_codebase: ${{ github.workspace }}
+          verify_sbom: ${{ vars.VERIFY_SBOM || 'false' }}
+          policy_set_ref: ${{ vars.OPA_POLICY_SET_REF }}
+          keyless_type: non-harness

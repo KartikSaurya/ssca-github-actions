@@ -36,6 +36,24 @@ inputs:
     required: false
   docker_password:
     required: false
+
+  workspace:
+    description: "File path for non-container artifacts (SOURCE_TYPE=local)"
+    required: false
+  artifact_name:
+    description: "Non-container artifact name (optional; auto-derived from workspace if unset)"
+    required: false
+  local_file_version:
+    description: "Version label for non-container artifacts"
+    required: false
+
+  kms_key:
+    description: "HashiCorp Vault transit key path for cosign (same as V1 KMS_KEY)"
+    required: false
+  vault_address:
+    required: false
+  vault_token:
+    required: false
 runs:
   using: "composite"
   steps:
@@ -56,6 +74,12 @@ runs:
         PLUGIN_KEYLESS_TYPE: ${{ inputs.keyless_type }}
         DOCKER_USERNAME: ${{ inputs.docker_username }}
         DOCKER_PASSWORD: ${{ inputs.docker_password }}
+        PLUGIN_WORKSPACE: ${{ inputs.workspace }}
+        ARTIFACT_WORKSPACE: ${{ inputs.workspace }}
+        PLUGIN_NON_CONTAINER_ARTIFACT_NAME: ${{ inputs.artifact_name }}
+        ARTIFACT_NAME: ${{ inputs.artifact_name }}
+        PLUGIN_LOCAL_FILE_VERSION: ${{ inputs.local_file_version }}
+        ARTIFACT_VERSION: ${{ inputs.local_file_version }}
       run: |
         set -euo pipefail
         if [ "${PLUGIN_KEYLESS_TYPE:-}" = "non-harness" ]; then
