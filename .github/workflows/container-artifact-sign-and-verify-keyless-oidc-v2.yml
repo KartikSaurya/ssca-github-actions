@@ -17,7 +17,7 @@ jobs:
       HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
       HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
       HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
-      ARTIFACT_SIGNING_PLUGIN_IMAGE: ${{ vars.ARTIFACT_SIGNING_PLUGIN_IMAGE }}
+      ARTIFACT_SIGNING_PLUGIN_IMAGE: harness/ssca-artifact-signing-plugin:test-githubV2
       ARTIFACT_IMAGE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
 
     steps:

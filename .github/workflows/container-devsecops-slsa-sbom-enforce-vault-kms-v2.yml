@@ -17,8 +17,8 @@ jobs:
       HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
       HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
       HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
-      SSCA_PLUGIN_IMAGE: ${{ vars.SSCA_PLUGIN_IMAGE }}
-      SLSA_PLUGIN_IMAGE: ${{ vars.SLSA_PLUGIN_IMAGE }}
+      SSCA_PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
+      SLSA_PLUGIN_IMAGE: harness/slsa-plugin:test-githubV2
       ARTIFACT_IMAGE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
       KMS_KEY: ${{ vars.KMS_KEY }}
 

@@ -36,7 +36,7 @@ GCP Cloud KMS is not covered by these samples (use plugin GCP env vars in a cust
 | `DEVSECOPS_TARGET_IMAGE` | Container image ref |
 | `NON_CONTAINER_WORKSPACE` | Path to file in repo, e.g. `dist/app.jar` |
 | `NON_CONTAINER_ARTIFACT_NAME`, `NON_CONTAINER_ARTIFACT_VERSION` | Optional non-container metadata |
-| `SSCA_PLUGIN_IMAGE`, `SLSA_PLUGIN_IMAGE`, `ARTIFACT_SIGNING_PLUGIN_IMAGE` | Pin V2-built plugin images |
+| Plugin images (testing) | V2 workflows pin `harness/ssca-plugin:test-githubV2`, `harness/slsa-plugin:test-githubV2`, `harness/ssca-artifact-signing-plugin:test-githubV2` |
 | `OPA_POLICY_SET_REF`, `ATTEST_SBOM`, `VERIFY_SBOM`, … | Optional behavior toggles |
 
 Run from **Actions** → workflow name → **Run workflow**.
