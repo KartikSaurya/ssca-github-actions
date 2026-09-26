@@ -1,5 +1,5 @@
-# Container DevSecOps (Vault KMS): SLSA attest + verify, SBOM generate + enforce — aligned with Jenkins V2.
-name: "V2 Container — SLSA + SBOM + Enforce (Vault KMS)"
+# Non-container (local zip): SLSA + SSCA + artifact signing — Vault KMS.
+name: "V2 non-container-kms"
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  vault-kms-devsecops:
+  non-container-vault-kms:
     runs-on: ubuntu-latest
     env:
       HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
@@ -17,30 +17,22 @@ jobs:
       HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
       HARNESS_SSCA_SERVICE_ENDPOINT: ${{ vars.HARNESS_SSCA_SERVICE_ENDPOINT }}
       HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
-      PLUGIN_REGISTRY: index.docker.io
       SSCA_PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
       SLSA_PLUGIN_IMAGE: harness/slsa-plugin:test-githubV2
-      ARTIFACT_IMAGE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+      SIGNING_PLUGIN_IMAGE: harness/ssca-artifact-signing-plugin:test-githubV2
       KMS_KEY: ${{ vars.KMS_KEY }}
+      LOCAL_ARTIFACT: ${{ github.workspace }}/artifacts/scs-sample-app.zip
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Log in to container registry
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Configure Vault for plugins
-        uses: ./.github/actions/export-vault-env
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/prepare-non-container-artifact
+      - uses: ./.github/actions/export-vault-env
         with:
           vault_addr: ${{ secrets.VAULT_ADDR }}
           vault_token: ${{ secrets.VAULT_TOKEN }}
 
-      - name: SLSA provenance with Vault KMS
-        uses: ./v2/slsa-generation-v2
+      - name: SLSA — attest
+        uses: ./v2/slsa-generation
         with:
           plugin_image: ${{ env.SLSA_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
@@ -49,17 +41,18 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          slsa_source: ${{ env.ARTIFACT_IMAGE }}
-          registry_type: docker
+          slsa_source: ${{ env.LOCAL_ARTIFACT }}
+          registry_type: local
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
+          local_file_version: v1
           attest_slsa: ${{ vars.ATTEST_SLSA || 'true' }}
           vault_address: ${{ secrets.VAULT_ADDR }}
           vault_token: ${{ env.VAULT_TOKEN }}
           kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
-          docker_username: ${{ secrets.DOCKER_USERNAME }}
-          docker_password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: SLSA verification with Vault KMS
-        uses: ./v2/slsa-verification-v2
+      - name: SLSA — verify
+        uses: ./v2/slsa-verification
         with:
           plugin_image: ${{ env.SLSA_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
@@ -68,17 +61,17 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          slsa_source: ${{ env.ARTIFACT_IMAGE }}
-          registry_type: docker
+          slsa_source: ${{ env.LOCAL_ARTIFACT }}
+          registry_type: local
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
           verify_slsa: ${{ vars.VERIFY_SLSA || 'true' }}
           vault_address: ${{ secrets.VAULT_ADDR }}
           vault_token: ${{ env.VAULT_TOKEN }}
           kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
-          docker_username: ${{ secrets.DOCKER_USERNAME }}
-          docker_password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: SBOM generation with Vault KMS
-        uses: ./v2/sbom-generation-v2
+      - name: SSCA — SBOM generate
+        uses: ./v2/sbom-generation
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
@@ -87,8 +80,11 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          sbom_source: ${{ env.ARTIFACT_IMAGE }}
-          source_type: image
+          source_type: local
+          sbom_source: ${{ env.LOCAL_ARTIFACT }}
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
+          local_file_version: v1
           sbom_tool: ${{ vars.SBOM_TOOL || 'Syft' }}
           sbom_format: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
           sbom_destination: harness
@@ -96,11 +92,9 @@ jobs:
           vault_address: ${{ secrets.VAULT_ADDR }}
           vault_token: ${{ env.VAULT_TOKEN }}
           kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
-          docker_username: ${{ secrets.DOCKER_USERNAME }}
-          docker_password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: SBOM policy enforcement with Vault KMS
-        uses: ./v2/sbom-policy-enforcement-v2
+      - name: SSCA — SBOM enforce
+        uses: ./v2/sbom-policy-enforcement
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
@@ -109,12 +103,50 @@ jobs:
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
           ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          sbom_source: ${{ env.ARTIFACT_IMAGE }}
-          source_type: image
+          source_type: local
+          sbom_source: ${{ env.LOCAL_ARTIFACT }}
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
+          local_file_version: v1
           verify_sbom: ${{ vars.VERIFY_SBOM || 'true' }}
           policy_set_ref: ${{ vars.OPA_POLICY_SET_REF || 'my_opa_policy_set' }}
           vault_address: ${{ secrets.VAULT_ADDR }}
           vault_token: ${{ env.VAULT_TOKEN }}
           kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
-          docker_username: ${{ secrets.DOCKER_USERNAME }}
-          docker_password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Artifact signing — sign
+        uses: ./v2/artifact-signing
+        with:
+          plugin_image: ${{ env.SIGNING_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          registry_type: local
+          signing_source: ${{ env.LOCAL_ARTIFACT }}
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
+          local_file_version: v1
+          vault_address: ${{ secrets.VAULT_ADDR }}
+          vault_token: ${{ env.VAULT_TOKEN }}
+          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
+
+      - name: Artifact signing — verify
+        uses: ./v2/artifact-verification
+        with:
+          plugin_image: ${{ env.SIGNING_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          registry_type: local
+          signing_source: ${{ env.LOCAL_ARTIFACT }}
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
+          vault_address: ${{ secrets.VAULT_ADDR }}
+          vault_token: ${{ env.VAULT_TOKEN }}
+          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}

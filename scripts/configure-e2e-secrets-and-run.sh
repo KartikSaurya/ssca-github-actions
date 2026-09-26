@@ -35,5 +35,6 @@ gh variable set OPA_POLICY_SET_REF -R "$REPO" -b 'my_opa_policy_set'
 gh variable set GIT_REPO_URL -R "$REPO" -b 'https://github.com/KartikSaurya/Buggy-App.git'
 gh variable set GIT_BRANCH -R "$REPO" -b 'main'
 
-gh workflow run v2-run-all-e2e.yml -R "$REPO" --ref main
-echo "Dispatched v2-run-all-e2e on $REPO — see https://github.com/$REPO/actions"
+WORKFLOW="${WORKFLOW:-container-kms.yml}"
+gh workflow run "$WORKFLOW" -R "$REPO" --ref main
+echo "Dispatched $WORKFLOW on $REPO — see https://github.com/$REPO/actions"

@@ -1,5 +1,5 @@
-# Generate an SBOM from a sample repository with keyless OIDC attestation.
-name: "V2 Repository — SBOM Generate (Keyless OIDC)"
+# Repository SBOM only — keyless OIDC.
+name: "V2 repo-keyless"
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ permissions:
   id-token: write
 
 jobs:
-  repository-sbom-keyless:
+  repo-keyless:
     runs-on: ubuntu-latest
     env:
       HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
@@ -25,18 +25,15 @@ jobs:
       GIT_BRANCH: ${{ vars.GIT_BRANCH || 'main' }}
 
     steps:
-      - name: Checkout actions repo
-        uses: actions/checkout@v4
-
-      - name: Checkout sample application repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           repository: KartikSaurya/Buggy-App
           ref: ${{ env.GIT_BRANCH }}
           path: sample-repo
 
-      - name: Repository SBOM with keyless OIDC
-        uses: ./v2/repo-sbom-generation-v2
+      - name: SSCA — repository SBOM generate
+        uses: ./v2/repo-sbom-generation
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
@@ -50,8 +47,27 @@ jobs:
           repo_variant: ${{ env.GIT_BRANCH }}
           repo_variant_type: branch
           cloned_codebase: ${{ github.workspace }}/sample-repo
-          sbom_tool: ${{ vars.SBOM_TOOL || 'Syft' }}
-          sbom_format: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
           sbom_destination: harness
           attest_sbom: ${{ vars.ATTEST_SBOM || 'true' }}
+          keyless_type: non-harness
+
+      - name: SSCA — repository SBOM enforce
+        uses: ./v2/sbom-policy-enforcement
+        with:
+          plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          source_type: repository
+          sbom_source: ${{ env.GIT_REPO_URL }}
+          repo_url: ${{ env.GIT_REPO_URL }}
+          repo_path: KartikSaurya/Buggy-App
+          repo_variant: ${{ env.GIT_BRANCH }}
+          repo_variant_type: branch
+          repo_cloned_codebase: ${{ github.workspace }}/sample-repo
+          verify_sbom: ${{ vars.VERIFY_SBOM || 'true' }}
+          policy_set_ref: ${{ vars.OPA_POLICY_SET_REF || 'my_opa_policy_set' }}
           keyless_type: non-harness

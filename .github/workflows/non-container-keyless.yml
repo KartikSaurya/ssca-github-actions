@@ -1,0 +1,134 @@
+# Non-container: SLSA + SSCA + artifact signing — keyless OIDC.
+name: "V2 non-container-keyless"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  non-container-keyless:
+    runs-on: ubuntu-latest
+    env:
+      HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
+      HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
+      HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
+      HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+      HARNESS_SSCA_SERVICE_ENDPOINT: ${{ vars.HARNESS_SSCA_SERVICE_ENDPOINT }}
+      HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+      OIDC_PROVIDER: non-harness
+      FULCIO_URL: ${{ vars.FULCIO_URL }}
+      SSCA_PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
+      SLSA_PLUGIN_IMAGE: harness/slsa-plugin:test-githubV2
+      SIGNING_PLUGIN_IMAGE: harness/ssca-artifact-signing-plugin:test-githubV2
+      LOCAL_ARTIFACT: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/prepare-non-container-artifact
+
+      - name: SLSA — attest
+        uses: ./v2/slsa-generation
+        with:
+          plugin_image: ${{ env.SLSA_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          slsa_source: ${{ env.LOCAL_ARTIFACT }}
+          registry_type: local
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
+          local_file_version: v1
+          attest_slsa: ${{ vars.ATTEST_SLSA || 'true' }}
+          keyless_type: non-harness
+
+      - name: SLSA — verify
+        uses: ./v2/slsa-verification
+        with:
+          plugin_image: ${{ env.SLSA_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          slsa_source: ${{ env.LOCAL_ARTIFACT }}
+          registry_type: local
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
+          verify_slsa: ${{ vars.VERIFY_SLSA || 'true' }}
+          keyless_type: non-harness
+
+      - name: SSCA — SBOM generate
+        uses: ./v2/sbom-generation
+        with:
+          plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          source_type: local
+          sbom_source: ${{ env.LOCAL_ARTIFACT }}
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
+          local_file_version: v1
+          sbom_destination: harness
+          attest_sbom: ${{ vars.ATTEST_SBOM || 'true' }}
+          keyless_type: non-harness
+
+      - name: SSCA — SBOM enforce
+        uses: ./v2/sbom-policy-enforcement
+        with:
+          plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          source_type: local
+          sbom_source: ${{ env.LOCAL_ARTIFACT }}
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
+          verify_sbom: ${{ vars.VERIFY_SBOM || 'true' }}
+          policy_set_ref: ${{ vars.OPA_POLICY_SET_REF || 'my_opa_policy_set' }}
+          keyless_type: non-harness
+
+      - name: Artifact signing — sign
+        uses: ./v2/artifact-signing
+        with:
+          plugin_image: ${{ env.SIGNING_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          registry_type: local
+          signing_source: ${{ env.LOCAL_ARTIFACT }}
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
+          keyless_type: non-harness
+
+      - name: Artifact signing — verify
+        uses: ./v2/artifact-verification
+        with:
+          plugin_image: ${{ env.SIGNING_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          registry_type: local
+          signing_source: ${{ env.LOCAL_ARTIFACT }}
+          workspace: ${{ env.LOCAL_ARTIFACT }}
+          artifact_name: scs-sample-app.zip
+          keyless_type: non-harness
