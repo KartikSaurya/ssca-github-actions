@@ -1,9 +1,8 @@
 # SSCA GitHub Actions — V2
 
-V2 composite actions live alongside the existing V1 actions (`sbom-generation`, `slsa-generation`, …).  
-They use the **V2 env vocabulary** (`SOURCE_TYPE`, `SBOM_SOURCE`, `SLSA_SOURCE`, `REPO_*`) and plugin subcommands (`github-orchestrate`, `github-enforce`, `github-provenance`, `github-slsa-verification`, `github-sign`, `github-verify`).
+V2 composite actions sit **next to** the existing V1 actions. They use the V2 env vocabulary (`SOURCE_TYPE`, `SBOM_SOURCE`, `SLSA_SOURCE`, `REPO_*`) and `github-*` plugin subcommands.
 
-## V2 action directories
+## V2 composite actions
 
 | Directory | Plugin subcommand |
 |-----------|-------------------|
@@ -16,35 +15,38 @@ They use the **V2 env vocabulary** (`SOURCE_TYPE`, `SBOM_SOURCE`, `SLSA_SOURCE`,
 | `artifact-signing-v2` | `github-sign` |
 | `artifact-verification-v2` | `github-verify` |
 
-Each action runs the plugin via **Docker** on the runner (`plugin_image` input). Build images from [ssca-plugins](https://github.com/harness/ssca-plugins) after merging the GitHub V2 CLI branches, then push to a registry your workflow can pull.
+Each action runs the plugin in **Docker** (`plugin_image` input). Build images from **ssca-plugins** with the GitHub V2 CLI merged, then push to a registry the runner can pull.
 
-Default image tags (override with `plugin_image` on each step):
+## V2 example workflows (by signing method)
 
-- `harness/ssca-plugin:prod` — SSCA / repo SBOM
-- `harness/slsa-plugin:prod` — SLSA
-- `harness/ssca-artifact-signing-plugin:prod` — signing
+Workflow file names describe **artifact type**, **steps**, and **signing method**.
 
-## Secrets / variables
+### HashiCorp Vault KMS (not GCP KMS)
 
-Configure in the repo (same as V1 flows):
+Requires secrets `VAULT_URL`, `VAULT_TOKEN`. Optional variable `VAULT_COSIGN_KEY_PATH` (default transit key path `cosign` in the workflow).
 
-- `HARNESS_API_KEY`
-- `DOCKER_USERNAME` / `DOCKER_PASSWORD` (if pushing/pulling private images)
-- Optional: `VAULT_URL`, `VAULT_TOKEN` (Vault signing)
-- Optional repository variables: `SSCA_PLUGIN_IMAGE`, `SLSA_PLUGIN_IMAGE`, `ARTIFACT_SIGNING_PLUGIN_IMAGE` — pin your V2-built tags
+| Workflow file | What it runs |
+|---------------|--------------|
+| `container-devsecops-slsa-sbom-enforce-vault-kms-v2.yml` | Container: SLSA → SBOM → policy enforce |
+| `container-artifact-sign-and-verify-vault-kms-v2.yml` | Container: cosign sign → verify |
+| `repository-sbom-generate-vault-kms-v2.yml` | Repository SBOM (+ optional attest via `ATTEST_SBOM`) |
 
-## Keyless signing
+### Keyless OIDC (GitHub → Fulcio)
 
-Calling workflows must set:
+Requires `permissions: id-token: write`. Actions set `keyless_type: non-harness`.
 
-```yaml
-permissions:
-  id-token: write
-```
+| Workflow file | What it runs |
+|---------------|--------------|
+| `container-devsecops-slsa-sbom-enforce-keyless-oidc-v2.yml` | Container: SLSA → SBOM → policy enforce |
+| `container-artifact-sign-and-verify-keyless-oidc-v2.yml` | Container: cosign sign → verify |
+| `repository-sbom-generate-keyless-oidc-v2.yml` | Repository SBOM (+ optional attest) |
 
-Set `keyless_type: non-harness` on the action inputs when using GitHub OIDC + Fulcio.
+GCP Cloud KMS is **not** included in these samples; configure GCP KMS via plugin env in a custom workflow if needed.
 
-## Example workflows
+## Repo configuration
 
-- `.github/workflows/devsecops-v2.yml` — container image: SLSA → SBOM → policy enforcement
-- `.github/workflows/repo-sbom-v2.yml` — repository SBOM on `workflow_dispatch`
+**Secrets:** `HARNESS_API_KEY`, `VAULT_URL`, `VAULT_TOKEN` (Vault flows), optional `DOCKER_USERNAME` / `DOCKER_PASSWORD`
+
+**Variables:** `HARNESS_ACCOUNT_URL`, `HARNESS_ACCOUNT_ID`, `HARNESS_ORG_ID`, `HARNESS_PROJECT_ID`, `DEVSECOPS_TARGET_IMAGE`, optional `SSCA_PLUGIN_IMAGE`, `SLSA_PLUGIN_IMAGE`, `ARTIFACT_SIGNING_PLUGIN_IMAGE`, `OPA_POLICY_SET_REF`, `VAULT_COSIGN_KEY_PATH`, `ATTEST_SBOM`, `ATTEST_SLSA`, `VERIFY_SBOM`
+
+Run from **Actions** → pick the workflow name that matches your signing method → **Run workflow**.

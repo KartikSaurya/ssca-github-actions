@@ -53,6 +53,12 @@ inputs:
     required: false
   keyless_type:
     required: false
+  vault_address:
+    required: false
+  vault_token:
+    required: false
+  vault_key_path:
+    required: false
 runs:
   using: "composite"
   steps:
@@ -81,6 +87,9 @@ runs:
         SSCA_ORCHESTRATION_COSIGN_PRIVATE_KEY: ${{ inputs.cosign_private_key }}
         SSCA_ORCHESTRATION_COSIGN_PASSWORD: ${{ inputs.cosign_password }}
         PLUGIN_KEYLESS_TYPE: ${{ inputs.keyless_type }}
+        VAULT_ADDR: ${{ inputs.vault_address }}
+        VAULT_TOKEN: ${{ inputs.vault_token }}
+        VAULT_COSIGN_KEY_PATH: ${{ inputs.vault_key_path }}
       run: |
         set -euo pipefail
         if [ "${PLUGIN_KEYLESS_TYPE:-}" = "non-harness" ]; then

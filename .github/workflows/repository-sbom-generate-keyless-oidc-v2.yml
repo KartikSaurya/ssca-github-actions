@@ -1,4 +1,5 @@
-name: Repository SBOM (V2)
+# Generate an SBOM from the checked-out repository (SOURCE_TYPE=repository) with keyless OIDC attestation.
+name: "V2 Repository — SBOM Generate (Keyless OIDC)"
 
 on:
   workflow_dispatch:
@@ -8,7 +9,7 @@ permissions:
   id-token: write
 
 jobs:
-  repo-sbom:
+  repository-sbom-keyless-oidc:
     runs-on: ubuntu-latest
     env:
       HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
@@ -16,13 +17,13 @@ jobs:
       HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
       HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
       HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
-      SSCA_PLUGIN_IMAGE: ${{ vars.SSCA_PLUGIN_IMAGE || 'harness/ssca-plugin:prod' }}
+      SSCA_PLUGIN_IMAGE: ${{ vars.SSCA_PLUGIN_IMAGE }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Repository SBOM generation (V2)
+      - name: Repository SBOM with keyless OIDC
         uses: ./repo-sbom-generation-v2
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
@@ -31,6 +32,7 @@ jobs:
           harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
           harness_org_id: ${{ env.HARNESS_ORG_ID }}
           harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
-          sbom_tool: Syft
-          sbom_format: cyclonedx-json
-          attest_sbom: "false"
+          sbom_tool: ${{ vars.SBOM_TOOL || 'Syft' }}
+          sbom_format: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
+          attest_sbom: ${{ vars.ATTEST_SBOM || 'false' }}
+          keyless_type: non-harness

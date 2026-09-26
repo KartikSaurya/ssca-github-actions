@@ -1,0 +1,53 @@
+# Generate an SBOM from the checked-out repository (SOURCE_TYPE=repository) with Vault KMS attestation.
+name: "V2 Repository — SBOM Generate (Vault KMS)"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repository-sbom-vault-kms:
+    runs-on: ubuntu-latest
+    env:
+      HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
+      HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
+      HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
+      HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+      HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+      SSCA_PLUGIN_IMAGE: ${{ vars.SSCA_PLUGIN_IMAGE }}
+      VAULT_COSIGN_KEY_PATH: ${{ vars.VAULT_COSIGN_KEY_PATH }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to Vault
+        uses: hashicorp/vault-action@v3
+        id: vault_login
+        with:
+          url: ${{ secrets.VAULT_URL }}
+          method: token
+          token: ${{ secrets.VAULT_TOKEN }}
+
+      - name: Export Vault environment for plugins
+        run: |
+          echo "VAULT_ADDR=${{ secrets.VAULT_URL }}" >> "$GITHUB_ENV"
+          echo "VAULT_TOKEN=${{ steps.vault_login.outputs.token }}" >> "$GITHUB_ENV"
+
+      - name: Repository SBOM with Vault KMS
+        uses: ./repo-sbom-generation-v2
+        with:
+          plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
+          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
+          harness_api_key: ${{ env.HARNESS_API_KEY }}
+          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
+          harness_org_id: ${{ env.HARNESS_ORG_ID }}
+          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
+          sbom_tool: ${{ vars.SBOM_TOOL || 'Syft' }}
+          sbom_format: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
+          attest_sbom: ${{ vars.ATTEST_SBOM || 'false' }}
+          vault_address: ${{ secrets.VAULT_URL }}
+          vault_token: ${{ env.VAULT_TOKEN }}
+          vault_key_path: ${{ env.VAULT_COSIGN_KEY_PATH != '' && env.VAULT_COSIGN_KEY_PATH || 'cosign' }}
