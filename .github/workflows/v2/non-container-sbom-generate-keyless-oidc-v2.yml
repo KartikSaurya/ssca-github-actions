@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: SBOM for non-container artifact (Keyless OIDC)
-        uses: ./sbom-generation-v2
+        uses: ./v2/sbom-generation-v2
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}

@@ -1,15 +1,14 @@
-# Sign and verify a non-container file with GitHub OIDC keyless signing.
-name: "V2 Non-Container — Artifact Sign + Verify (Keyless OIDC)"
+# Sign and verify a non-container file (SOURCE_TYPE=local) with Vault KMS (KMS_KEY).
+name: "V2 Non-Container — Artifact Sign + Verify (Vault KMS)"
 
 on:
   workflow_dispatch:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
-  non-container-sign-keyless:
+  non-container-sign-vault:
     runs-on: ubuntu-latest
     env:
       HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
@@ -18,14 +17,28 @@ jobs:
       HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
       HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
       ARTIFACT_SIGNING_PLUGIN_IMAGE: harness/ssca-artifact-signing-plugin:test-githubV2
+      KMS_KEY: ${{ vars.KMS_KEY }}
       NON_CONTAINER_WORKSPACE: ${{ vars.NON_CONTAINER_WORKSPACE }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Sign non-container artifact (Keyless OIDC)
-        uses: ./artifact-signing-v2
+      - name: Log in to Vault
+        uses: hashicorp/vault-action@v3
+        id: vault_login
+        with:
+          url: ${{ secrets.VAULT_URL }}
+          method: token
+          token: ${{ secrets.VAULT_TOKEN }}
+
+      - name: Export Vault environment
+        run: |
+          echo "VAULT_ADDR=${{ secrets.VAULT_URL }}" >> "$GITHUB_ENV"
+          echo "VAULT_TOKEN=${{ steps.vault_login.outputs.token }}" >> "$GITHUB_ENV"
+
+      - name: Sign non-container artifact (Vault KMS)
+        uses: ./v2/artifact-signing-v2
         with:
           plugin_image: ${{ env.ARTIFACT_SIGNING_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
@@ -38,10 +51,12 @@ jobs:
           workspace: ${{ env.NON_CONTAINER_WORKSPACE }}
           artifact_name: ${{ vars.NON_CONTAINER_ARTIFACT_NAME }}
           local_file_version: ${{ vars.NON_CONTAINER_ARTIFACT_VERSION }}
-          keyless_type: non-harness
+          vault_address: ${{ secrets.VAULT_URL }}
+          vault_token: ${{ env.VAULT_TOKEN }}
+          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'cosign' }}
 
-      - name: Verify non-container artifact (Keyless OIDC)
-        uses: ./artifact-verification-v2
+      - name: Verify non-container artifact (Vault KMS)
+        uses: ./v2/artifact-verification-v2
         with:
           plugin_image: ${{ env.ARTIFACT_SIGNING_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
@@ -53,4 +68,6 @@ jobs:
           signing_source: ${{ env.NON_CONTAINER_WORKSPACE }}
           workspace: ${{ env.NON_CONTAINER_WORKSPACE }}
           artifact_name: ${{ vars.NON_CONTAINER_ARTIFACT_NAME }}
-          keyless_type: non-harness
+          vault_address: ${{ secrets.VAULT_URL }}
+          vault_token: ${{ env.VAULT_TOKEN }}
+          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'cosign' }}

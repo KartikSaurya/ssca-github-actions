@@ -38,7 +38,7 @@ jobs:
           echo "VAULT_TOKEN=${{ steps.vault_login.outputs.token }}" >> "$GITHUB_ENV"
 
       - name: SBOM for non-container artifact (Vault KMS)
-        uses: ./sbom-generation-v2
+        uses: ./v2/sbom-generation-v2
         with:
           plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}

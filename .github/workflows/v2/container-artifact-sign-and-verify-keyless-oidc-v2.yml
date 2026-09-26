@@ -32,7 +32,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Sign artifact with keyless OIDC
-        uses: ./artifact-signing-v2
+        uses: ./v2/artifact-signing-v2
         with:
           plugin_image: ${{ env.ARTIFACT_SIGNING_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
@@ -47,7 +47,7 @@ jobs:
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Verify artifact with keyless OIDC
-        uses: ./artifact-verification-v2
+        uses: ./v2/artifact-verification-v2
         with:
           plugin_image: ${{ env.ARTIFACT_SIGNING_PLUGIN_IMAGE }}
           harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
