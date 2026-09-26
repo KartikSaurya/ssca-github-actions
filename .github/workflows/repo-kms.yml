@@ -36,69 +36,69 @@ jobs:
 
       - uses: ./.github/actions/export-vault-env
         with:
-          vault_addr: ${{ secrets.VAULT_ADDR }}
-          vault_token: ${{ secrets.VAULT_TOKEN }}
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
       - name: sbom-generation
         uses: ./v2/repo-sbom-generation
         with:
-          plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
-          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
-          harness_api_key: ${{ env.HARNESS_API_KEY }}
-          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
-          harness_org_id: ${{ env.HARNESS_ORG_ID }}
-          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
-          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          repo_url: ${{ env.GIT_REPO_URL }}
-          repo_path: KartikSaurya/Buggy-App
-          repo_variant: ${{ env.GIT_BRANCH }}
-          repo_variant_type: branch
-          cloned_codebase: ${{ github.workspace }}/sample-repo
-          sbom_tool: ${{ vars.SBOM_TOOL || 'Syft' }}
-          sbom_format: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
-          sbom_destination: ${{ env.SBOM_LOCAL_PATH }}
-          attest_sbom: "false"
-          vault_address: ${{ secrets.VAULT_ADDR }}
-          vault_token: ${{ env.VAULT_TOKEN }}
-          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
+          PLUGIN_IMAGE: ${{ env.SSCA_PLUGIN_IMAGE }}
+          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
+          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          REPO_URL: ${{ env.GIT_REPO_URL }}
+          REPO_PATH: KartikSaurya/Buggy-App
+          REPO_VARIANT: ${{ env.GIT_BRANCH }}
+          REPO_VARIANT_TYPE: branch
+          REPO_CLONED_CODEBASE: ${{ github.workspace }}/sample-repo
+          SBOM_TOOL: ${{ vars.SBOM_TOOL || 'Syft' }}
+          SBOM_FORMAT: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
+          PLUGIN_SBOMDESTINATION: ${{ env.SBOM_LOCAL_PATH }}
+          ATTEST_SBOM: "false"
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
+          KMS_KEY: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
 
       - name: sbom-ingestion
         uses: ./v2/sbom-ingestion
         with:
-          plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
-          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
-          harness_api_key: ${{ env.HARNESS_API_KEY }}
-          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
-          harness_org_id: ${{ env.HARNESS_ORG_ID }}
-          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
-          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          source_type: ${{ env.SOURCE_TYPE }}
-          sbom_source: ${{ env.GIT_REPO_URL }}
-          sbom_destination: ${{ env.SBOM_LOCAL_PATH }}
-          attest_sbom: ${{ vars.ATTEST_SBOM || 'true' }}
-          vault_address: ${{ secrets.VAULT_ADDR }}
-          vault_token: ${{ env.VAULT_TOKEN }}
-          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
+          PLUGIN_IMAGE: ${{ env.SSCA_PLUGIN_IMAGE }}
+          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
+          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
+          SBOM_SOURCE: ${{ env.GIT_REPO_URL }}
+          PLUGIN_SBOMDESTINATION: ${{ env.SBOM_LOCAL_PATH }}
+          ATTEST_SBOM: ${{ vars.ATTEST_SBOM || 'true' }}
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
+          KMS_KEY: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
 
       - name: sbom-policy-enforcement
         uses: ./v2/sbom-policy-enforcement
         with:
-          plugin_image: ${{ env.SSCA_PLUGIN_IMAGE }}
-          harness_account_url: ${{ env.HARNESS_ACCOUNT_URL }}
-          harness_api_key: ${{ env.HARNESS_API_KEY }}
-          harness_account_id: ${{ env.HARNESS_ACCOUNT_ID }}
-          harness_org_id: ${{ env.HARNESS_ORG_ID }}
-          harness_project_id: ${{ env.HARNESS_PROJECT_ID }}
-          ssca_service_endpoint: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          source_type: ${{ env.SOURCE_TYPE }}
-          sbom_source: ${{ env.GIT_REPO_URL }}
-          repo_url: ${{ env.GIT_REPO_URL }}
-          repo_path: KartikSaurya/Buggy-App
-          repo_variant: ${{ env.GIT_BRANCH }}
-          repo_variant_type: branch
-          repo_cloned_codebase: ${{ github.workspace }}/sample-repo
-          verify_sbom: ${{ vars.VERIFY_SBOM || 'true' }}
-          policy_set_ref: ${{ vars.OPA_POLICY_SET_REF || 'my_opa_policy_set' }}
-          vault_address: ${{ secrets.VAULT_ADDR }}
-          vault_token: ${{ env.VAULT_TOKEN }}
-          kms_key: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}
+          PLUGIN_IMAGE: ${{ env.SSCA_PLUGIN_IMAGE }}
+          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
+          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
+          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
+          SBOM_SOURCE: ${{ env.GIT_REPO_URL }}
+          REPO_URL: ${{ env.GIT_REPO_URL }}
+          REPO_PATH: KartikSaurya/Buggy-App
+          REPO_VARIANT: ${{ env.GIT_BRANCH }}
+          REPO_VARIANT_TYPE: branch
+          REPO_CLONED_CODEBASE: ${{ github.workspace }}/sample-repo
+          VERIFY_SBOM: ${{ vars.VERIFY_SBOM || 'true' }}
+          POLICY_SET_REF: ${{ vars.OPA_POLICY_SET_REF || 'my_opa_policy_set' }}
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+          VAULT_TOKEN: ${{ env.VAULT_TOKEN }}
+          KMS_KEY: ${{ env.KMS_KEY != '' && env.KMS_KEY || 'SSCA_AUTOMATION_COSIGN_KEY' }}

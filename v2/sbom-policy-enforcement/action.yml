@@ -65,7 +65,7 @@ inputs:
     required: false
   REPO_VARIANT_TYPE:
     required: false
-  repo_cloned_codebase:
+  REPO_CLONED_CODEBASE:
     required: false
 runs:
   using: "composite"
@@ -93,7 +93,7 @@ runs:
         REPO_PATH: ${{ inputs.REPO_PATH }}
         REPO_VARIANT: ${{ inputs.REPO_VARIANT }}
         REPO_VARIANT_TYPE: ${{ inputs.REPO_VARIANT_TYPE }}
-        REPO_CLONED_CODEBASE: ${{ inputs.repo_cloned_codebase }}
+        REPO_CLONED_CODEBASE: ${{ inputs.REPO_CLONED_CODEBASE }}
         DOCKER_USERNAME: ${{ inputs.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ inputs.DOCKER_PASSWORD }}
         PLUGIN_WORKSPACE: ${{ inputs.PLUGIN_WORKSPACE }}

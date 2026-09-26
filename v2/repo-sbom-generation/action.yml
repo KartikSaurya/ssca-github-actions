@@ -32,7 +32,7 @@ inputs:
     description: "branch | tag | commit"
     required: false
     default: "branch"
-  cloned_codebase:
+  REPO_CLONED_CODEBASE:
     description: "Path to the checked-out codebase (e.g. the actions/checkout workspace)"
     required: false
   SBOM_TOOL:
@@ -78,7 +78,7 @@ runs:
         REPO_PATH: ${{ inputs.REPO_PATH || github.repository }}
         REPO_VARIANT: ${{ inputs.REPO_VARIANT || github.ref_name }}
         REPO_VARIANT_TYPE: ${{ inputs.REPO_VARIANT_TYPE }}
-        REPO_CLONED_CODEBASE: ${{ inputs.cloned_codebase || github.workspace }}
+        REPO_CLONED_CODEBASE: ${{ inputs.REPO_CLONED_CODEBASE || github.workspace }}
         SBOM_TOOL: ${{ inputs.SBOM_TOOL }}
         SBOM_FORMAT: ${{ inputs.SBOM_FORMAT }}
         PLUGIN_SBOMDESTINATION: ${{ inputs.PLUGIN_SBOMDESTINATION }}
