@@ -1,4 +1,4 @@
-# Repository V2 E2E on devspace.
+# Repository V2 E2E on QA.
 # Repository SBOM attestation is unsupported; generation, ingestion, and enforcement run sequentially.
 name: "V2 repo-keyless"
 
@@ -14,7 +14,7 @@ jobs:
     name: ssca
     runs-on: ubuntu-latest
     env:
-      FULCIO_URL: ${{ vars.FULCIO_URL }}
+      FULCIO_URL: ${{ vars.FULCIO_QA_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -28,11 +28,11 @@ jobs:
       - name: Repository SBOM generation (orchestrate)
         uses: ./v2/repo-sbom-generation
         with:
-          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           REPO_URL: ${{ vars.GIT_REPO_URL }}
           REPO_PATH: /
           REPO_VARIANT: ${{ vars.GIT_BRANCH }}
@@ -64,11 +64,11 @@ jobs:
           REPO_VARIANT_TYPE: branch
           REPO_CLONED_CODEBASE: ${{ github.workspace }}/sample-repo
         with:
-          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: repository
           SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
           PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
@@ -78,11 +78,11 @@ jobs:
       - name: Repository SBOM policy enforcement (enforce)
         uses: ./v2/sbom-policy-enforcement
         with:
-          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: repository
           SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
           REPO_URL: ${{ vars.GIT_REPO_URL }}
@@ -91,5 +91,5 @@ jobs:
           REPO_VARIANT_TYPE: branch
           REPO_CLONED_CODEBASE: ${{ github.workspace }}/sample-repo
           VERIFY_SBOM: "false"
-          POLICY_SET_REF: ${{ vars.OPA_POLICY_SET_REF }}
+          POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
           PLUGIN_KEYLESS_TYPE: non-harness
