@@ -86,4 +86,4 @@ jobs:
           REPO_VARIANT_TYPE: branch
           REPO_CLONED_CODEBASE: ${{ github.workspace }}/sample-repo
           VERIFY_SBOM: "false"
-          POLICY_SET_REF: ${{ vars.OPA_POLICY_SET_REF }}
+          POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}

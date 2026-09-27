@@ -1,33 +1,26 @@
-# Container: SBOM (generate → ingest → enforce) → SLSA → artifact signing — keyless OIDC.
+# Container V2 E2E on devspace using GitHub OIDC keyless signing.
+# Plugin jobs run in parallel; each plugin's subcommands run sequentially.
 name: "V2 container-keyless"
 
 on:
   workflow_dispatch:
+    inputs:
+      attest:
+        description: "Run keyless attestation and corresponding verification steps"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  container-keyless:
+  ssca:
+    name: ssca
     runs-on: ubuntu-latest
     env:
-      HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
-      HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
-      HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
-      HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
-      HARNESS_SSCA_SERVICE_ENDPOINT: ${{ vars.HARNESS_SSCA_SERVICE_ENDPOINT }}
-      HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
-      OIDC_PROVIDER: non-harness
       FULCIO_URL: ${{ vars.FULCIO_URL }}
-      SSCA_PLUGIN_IMAGE: harness/ssca-plugin:test-githubV2
-      SLSA_PLUGIN_IMAGE: harness/slsa-plugin:test-githubV2
-      SIGNING_PLUGIN_IMAGE: harness/ssca-artifact-signing-plugin:test-githubV2
-      SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
-      SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
-      SOURCE_TYPE: docker
-      SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH || '/tmp/sbom' }}
-
     steps:
       - uses: actions/checkout@v4
       - uses: docker/login-action@v3
@@ -35,124 +28,146 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: sbom-generation
+      - name: SBOM generation (orchestrate)
         uses: ./v2/sbom-generation
         with:
-          PLUGIN_IMAGE: ${{ env.SSCA_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SBOM_SOURCE: ${{ env.SBOM_SOURCE }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          SBOM_TOOL: ${{ vars.SBOM_TOOL || 'Syft' }}
-          SBOM_FORMAT: ${{ vars.SBOM_FORMAT || 'cyclonedx-json' }}
-          PLUGIN_SBOMDESTINATION: ${{ env.SBOM_LOCAL_PATH }}
-          ATTEST_SBOM: "false"
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SOURCE_TYPE: docker
+          SBOM_TOOL: ${{ vars.SBOM_TOOL }}
+          SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
+          PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
+          ATTEST_SBOM: ${{ inputs.attest }}
           PLUGIN_KEYLESS_TYPE: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: sbom-ingestion
+      - name: Resolve SBOM file for ingestion
+        env:
+          SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH }}
+        run: |
+          SBOM_FILE="$(ls -t "$SBOM_LOCAL_PATH"/sbom_*.json 2>/dev/null | head -1)"
+          if [ -z "$SBOM_FILE" ]; then
+            echo "No SBOM file under $SBOM_LOCAL_PATH" >&2
+            exit 1
+          fi
+          echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
+
+      - name: SBOM ingestion (orchestrate)
         uses: ./v2/sbom-ingestion
         with:
-          PLUGIN_IMAGE: ${{ env.SSCA_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SBOM_SOURCE: ${{ env.SBOM_SOURCE }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          PLUGIN_SBOMDESTINATION: ${{ env.SBOM_LOCAL_PATH }}
-          ATTEST_SBOM: ${{ vars.ATTEST_SBOM || 'true' }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SOURCE_TYPE: docker
+          PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
+          ATTEST_SBOM: ${{ inputs.attest }}
           PLUGIN_KEYLESS_TYPE: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: sbom-policy-enforcement
+      - name: SBOM policy enforcement (enforce)
         uses: ./v2/sbom-policy-enforcement
         with:
-          PLUGIN_IMAGE: ${{ env.SSCA_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SBOM_SOURCE: ${{ env.SBOM_SOURCE }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          VERIFY_SBOM: ${{ vars.VERIFY_SBOM || 'true' }}
-          POLICY_SET_REF: ${{ vars.OPA_POLICY_SET_REF || 'my_opa_policy_set' }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SOURCE_TYPE: docker
+          VERIFY_SBOM: ${{ inputs.attest }}
+          POLICY_SET_REF: ${{ vars.OPA_POLICY_SET_REF }}
           PLUGIN_KEYLESS_TYPE: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: slsa-attest
+  slsa:
+    name: slsa
+    runs-on: ubuntu-latest
+    env:
+      FULCIO_URL: ${{ vars.FULCIO_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: SLSA provenance (attest)
         uses: ./v2/slsa-generation
         with:
-          PLUGIN_IMAGE: ${{ env.SLSA_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SLSA_SOURCE: ${{ env.SLSA_SOURCE }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          ATTEST_SLSA: ${{ vars.ATTEST_SLSA || 'true' }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+          SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SOURCE_TYPE: docker
+          ATTEST_SLSA: ${{ inputs.attest }}
           PLUGIN_KEYLESS_TYPE: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: slsa-verify
+      - name: SLSA verification
+        if: ${{ inputs.attest }}
         uses: ./v2/slsa-verification
         with:
-          PLUGIN_IMAGE: ${{ env.SLSA_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SLSA_SOURCE: ${{ env.SLSA_SOURCE }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
-          VERIFY_SLSA: ${{ vars.VERIFY_SLSA || 'true' }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+          SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SOURCE_TYPE: docker
+          VERIFY_SLSA: "true"
           PLUGIN_KEYLESS_TYPE: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: artifact-sign
+  artifact-signing:
+    name: artifact-signing
+    runs-on: ubuntu-latest
+    env:
+      FULCIO_URL: ${{ vars.FULCIO_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Artifact signing
         uses: ./v2/artifact-signing
         with:
-          PLUGIN_IMAGE: ${{ env.SIGNING_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SIGNING_SOURCE: ${{ env.SLSA_SOURCE }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+          SIGNING_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SOURCE_TYPE: docker
           PLUGIN_KEYLESS_TYPE: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: artifact-verify
+      - name: Artifact verification
         uses: ./v2/artifact-verification
         with:
-          PLUGIN_IMAGE: ${{ env.SIGNING_PLUGIN_IMAGE }}
-          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
-          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
-          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
-          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
-          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
-          HARNESS_SSCA_SERVICE_ENDPOINT: ${{ env.HARNESS_SSCA_SERVICE_ENDPOINT }}
-          SIGNING_SOURCE: ${{ env.SLSA_SOURCE }}
-          SOURCE_TYPE: ${{ env.SOURCE_TYPE }}
+          HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_ACCOUNT_URL }}
+          HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ vars.HARNESS_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ vars.HARNESS_PROJECT_ID }}
+          SIGNING_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SOURCE_TYPE: docker
           PLUGIN_KEYLESS_TYPE: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

@@ -87,7 +87,7 @@ jobs:
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           VERIFY_SBOM: ${{ inputs.attest }}
-          POLICY_SET_REF: ${{ vars.OPA_POLICY_SET_REF }}
+          POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
