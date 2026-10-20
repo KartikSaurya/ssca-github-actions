@@ -1,5 +1,5 @@
 # Repository E2E on QA — harness/github-actions (Vault KMS). Pin @1.2.0 after release.
-name: "V2 repo-kms"
+name: "repo-kms"
 
 on:
   workflow_dispatch:
@@ -28,7 +28,7 @@ jobs:
           path: sample-repo
 
       - name: Repository SBOM generation (orchestrate)
-        uses: harness/github-actions/sbom-generation@SSCA-8414
+        uses: harness/github-actions/sbom-generation@main
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -57,7 +57,7 @@ jobs:
           echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
 
       - name: Repository SBOM ingestion (orchestrate)
-        uses: harness/github-actions/sbom-ingestion@SSCA-8414
+        uses: harness/github-actions/sbom-ingestion@main
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -73,7 +73,7 @@ jobs:
           KMS_KEY: ${{ vars.KMS_KEY }}
 
       - name: Repository SBOM policy enforcement (enforce)
-        uses: harness/github-actions/sbom-policy-enforcement@SSCA-8414
+        uses: harness/github-actions/sbom-policy-enforcement@main
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}

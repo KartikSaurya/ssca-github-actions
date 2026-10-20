@@ -32,7 +32,7 @@ jobs:
           echo "VAULT_TOKEN=${{ steps.vault_login.outputs.token }}" >> $GITHUB_ENV
           
       - name: Run SBOM Policy Enforcement Action
-        uses: harness/github-actions/sbom-policy-enforcement@SSCA-8414
+        uses: harness/github-actions/sbom-policy-enforcement@main
         with:
           HARNESS_ACCOUNT_URL: 'https://reetika.pr2.harness.io'
           HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}

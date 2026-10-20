@@ -30,7 +30,7 @@ jobs:
           echo "VAULT_TOKEN=${{ steps.VAULT_TOKEN }}" >> $GITHUB_ENV
           
       - name: Run SLSA Provenance Action
-        uses: harness/github-actions/slsa-generation@SSCA-8414
+        uses: harness/github-actions/slsa-generation@main
         with:
           HARNESS_ACCOUNT_URL: 'https://reetika.pr2.harness.io'
           HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}

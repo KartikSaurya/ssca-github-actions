@@ -1,5 +1,5 @@
 # Non-container E2E on QA — harness/github-actions (keyless). Pin @1.2.0 after release.
-name: "V2 non-container-keyless"
+name: "non-container-keyless"
 
 on:
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
       - uses: ./.github/actions/prepare-non-container-artifact
 
       - name: SBOM generation (orchestrate)
-        uses: harness/github-actions/sbom-generation@SSCA-8414
+        uses: harness/github-actions/sbom-generation@main
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -57,7 +57,7 @@ jobs:
           echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
 
       - name: SBOM ingestion (orchestrate)
-        uses: harness/github-actions/sbom-ingestion@SSCA-8414
+        uses: harness/github-actions/sbom-ingestion@main
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -74,7 +74,7 @@ jobs:
           OIDC_PROVIDER: non-harness
 
       - name: SBOM policy enforcement (enforce)
-        uses: harness/github-actions/sbom-policy-enforcement@SSCA-8414
+        uses: harness/github-actions/sbom-policy-enforcement@main
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -98,7 +98,7 @@ jobs:
       - uses: ./.github/actions/prepare-non-container-artifact
 
       - name: SLSA provenance (attest)
-        uses: harness/github-actions/slsa-generation@SSCA-8414
+        uses: harness/github-actions/slsa-generation@main
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -115,7 +115,7 @@ jobs:
 
       - name: SLSA verification
         if: ${{ inputs.attest }}
-        uses: harness/github-actions/slsa-verification@SSCA-8414
+        uses: harness/github-actions/slsa-verification@main
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -138,7 +138,7 @@ jobs:
       - uses: ./.github/actions/prepare-non-container-artifact
 
       - name: Artifact signing
-        uses: harness/github-actions/artifact-signing@SSCA-8414
+        uses: harness/github-actions/artifact-signing@main
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -153,7 +153,7 @@ jobs:
           OIDC_PROVIDER: non-harness
 
       - name: Artifact verification
-        uses: harness/github-actions/artifact-verification@SSCA-8414
+        uses: harness/github-actions/artifact-verification@main
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
