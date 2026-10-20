@@ -22,6 +22,8 @@ jobs:
   ssca:
     name: ssca
     runs-on: ubuntu-latest
+    env:
+      PLUGIN_SBOMDESTINATION: ${{ github.workspace }}/.ssca/sbom
     steps:
       - uses: actions/checkout@v4
       - uses: docker/login-action@v3
@@ -41,19 +43,18 @@ jobs:
           SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
           SOURCE_TYPE: docker
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
-          PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
+          PLUGIN_SBOMDESTINATION: ${{ env.PLUGIN_SBOMDESTINATION }}
           ATTEST_SBOM: ${{ inputs.attest }}
           OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Resolve SBOM file for ingestion
-        env:
-          SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH }}
         run: |
-          SBOM_FILE="$(ls -t "$SBOM_LOCAL_PATH"/sbom_*.json 2>/dev/null | head -1)"
+          mkdir -p "$PLUGIN_SBOMDESTINATION"
+          SBOM_FILE="$(ls -t "$PLUGIN_SBOMDESTINATION"/sbom_*.json 2>/dev/null | head -1)"
           if [ -z "$SBOM_FILE" ]; then
-            echo "No SBOM file under $SBOM_LOCAL_PATH" >&2
+            echo "No SBOM file under $PLUGIN_SBOMDESTINATION" >&2
             exit 1
           fi
           echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"

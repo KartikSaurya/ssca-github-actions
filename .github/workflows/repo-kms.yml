@@ -12,6 +12,7 @@ jobs:
     name: ssca
     runs-on: ubuntu-latest
     env:
+      PLUGIN_SBOMDESTINATION: ${{ github.workspace }}/.ssca/sbom
       REPO_URL: ${{ vars.GIT_REPO_URL }}
       REPO_PATH: /
       REPO_VARIANT: ${{ vars.GIT_BRANCH }}
@@ -39,19 +40,18 @@ jobs:
           SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
           SOURCE_TYPE: repository
           SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
-          PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
+          PLUGIN_SBOMDESTINATION: ${{ env.PLUGIN_SBOMDESTINATION }}
           ATTEST_SBOM: "false"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
 
       - name: Resolve SBOM file for ingestion
-        env:
-          SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH }}
         run: |
-          SBOM_FILE="$(ls -t "$SBOM_LOCAL_PATH"/sbom_*.json 2>/dev/null | head -1)"
+          mkdir -p "$PLUGIN_SBOMDESTINATION"
+          SBOM_FILE="$(ls -t "$PLUGIN_SBOMDESTINATION"/sbom_*.json 2>/dev/null | head -1)"
           if [ -z "$SBOM_FILE" ]; then
-            echo "No SBOM file under $SBOM_LOCAL_PATH" >&2
+            echo "No SBOM file under $PLUGIN_SBOMDESTINATION" >&2
             exit 1
           fi
           echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
