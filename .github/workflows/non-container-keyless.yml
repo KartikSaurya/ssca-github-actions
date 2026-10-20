@@ -1,5 +1,5 @@
-# Non-container V2 E2E on QA using GitHub OIDC keyless signing.
-# Plugin jobs run in parallel; each plugin's subcommands run sequentially.
+# Non-container E2E on QA — harness/github-actions (keyless). Local artifact via job env PLUGIN_* .
+# Pin @1.2.0 after release; until then @SSCA-8414.
 name: "V2 non-container-keyless"
 
 on:
@@ -15,18 +15,25 @@ permissions:
   contents: read
   id-token: write
 
+env:
+  LOCAL_ARTIFACT: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+
 jobs:
   ssca:
     name: ssca
     runs-on: ubuntu-latest
     env:
       FULCIO_URL: ${{ vars.FULCIO_QA_URL }}
+      PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
+      PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+      ARTIFACT_NAME: scs-sample-app.zip
+      ARTIFACT_VERSION: v1
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/prepare-non-container-artifact
 
       - name: SBOM generation (orchestrate)
-        uses: ./v2/sbom-generation
+        uses: harness/github-actions/sbom-generation@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -34,14 +41,10 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: local
-          SBOM_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_NAME: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_VERSION: v1
-          SBOM_TOOL: ${{ vars.SBOM_TOOL }}
-          SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
-          PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
-          ATTEST_SBOM: ${{ inputs.attest }}
+          TOOL: ${{ vars.SBOM_TOOL }}
+          FORMAT: ${{ vars.SBOM_FORMAT }}
+          TARGET: ${{ env.LOCAL_ARTIFACT }}
+          ATTEST: ${{ inputs.attest }}
           OIDC_PROVIDER: non-harness
 
       - name: Resolve SBOM file for ingestion
@@ -56,36 +59,30 @@ jobs:
           echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
 
       - name: SBOM ingestion (orchestrate)
-        uses: ./v2/sbom-ingestion
+        uses: harness/github-actions/sbom-ingestion@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
+          TARGET: ${{ env.LOCAL_ARTIFACT }}
+          SBOM_FILE_PATH: ${{ env.INGESTION_SBOM_FILE }}
           SOURCE_TYPE: local
-          SBOM_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_NAME: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_VERSION: v1
-          PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
-          ATTEST_SBOM: ${{ inputs.attest }}
+          ATTEST: ${{ inputs.attest }}
           OIDC_PROVIDER: non-harness
 
       - name: SBOM policy enforcement (enforce)
-        uses: ./v2/sbom-policy-enforcement
+        uses: harness/github-actions/sbom-policy-enforcement@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
+          TARGET: ${{ env.LOCAL_ARTIFACT }}
           SOURCE_TYPE: local
-          SBOM_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_NAME: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_VERSION: v1
-          VERIFY_SBOM: ${{ inputs.attest }}
+          VERIFY: ${{ inputs.attest }}
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
           OIDC_PROVIDER: non-harness
 
@@ -94,12 +91,15 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FULCIO_URL: ${{ vars.FULCIO_QA_URL }}
+      PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+      ARTIFACT_NAME: scs-sample-app.zip
+      ARTIFACT_VERSION: v1
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/prepare-non-container-artifact
 
       - name: SLSA provenance (attest)
-        uses: ./v2/slsa-generation
+        uses: harness/github-actions/slsa-generation@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -107,16 +107,13 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: local
-          SLSA_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_NAME: scs-sample-app.zip
-          ARTIFACT_VERSION: v1
-          ATTEST_SLSA: ${{ inputs.attest }}
+          TARGET: ${{ env.LOCAL_ARTIFACT }}
+          ATTEST: ${{ inputs.attest }}
           OIDC_PROVIDER: non-harness
 
       - name: SLSA verification
         if: ${{ inputs.attest }}
-        uses: ./v2/slsa-verification
+        uses: harness/github-actions/slsa-verification@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -124,11 +121,8 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: local
-          SLSA_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_NAME: scs-sample-app.zip
-          ARTIFACT_VERSION: v1
-          VERIFY_SLSA: "true"
+          TARGET: ${{ env.LOCAL_ARTIFACT }}
+          VERIFY: "true"
           OIDC_PROVIDER: non-harness
 
   artifact-signing:
@@ -136,12 +130,15 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FULCIO_URL: ${{ vars.FULCIO_QA_URL }}
+      PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
+      ARTIFACT_NAME: scs-sample-app.zip
+      ARTIFACT_VERSION: v1
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/prepare-non-container-artifact
 
       - name: Artifact signing
-        uses: ./v2/artifact-signing
+        uses: harness/github-actions/artifact-signing@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -149,14 +146,11 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: local
-          SIGNING_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_NAME: scs-sample-app.zip
-          ARTIFACT_VERSION: v1
+          TARGET: ${{ env.LOCAL_ARTIFACT }}
           OIDC_PROVIDER: non-harness
 
       - name: Artifact verification
-        uses: ./v2/artifact-verification
+        uses: harness/github-actions/artifact-verification@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -164,8 +158,5 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: local
-          SIGNING_SOURCE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
-          ARTIFACT_NAME: scs-sample-app.zip
-          ARTIFACT_VERSION: v1
+          TARGET: ${{ env.LOCAL_ARTIFACT }}
           OIDC_PROVIDER: non-harness
