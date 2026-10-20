@@ -39,9 +39,14 @@ jobs:
           HARNESS_ACCOUNT_ID: 'v7uYjYGtR4qIZAqh_Z-4DQ'
           HARNESS_ORG_ID: 'SSCA'
           HARNESS_PROJECT_ID: 'SSCA_Sanity_Automation'
-          TOOL: 'Syft'
-          FORMAT: 'spdx-json'
-          SBOM_SOURCE: 'reetika1999/ssca-manager:latest'
+          SBOM_TOOL: Syft
+          SBOM_FORMAT: spdx-json
+          SOURCE_TYPE: docker
+          SBOM_SOURCE: reetika1999/ssca-manager:latest
           ATTEST_SBOM: false
-          KMS_KEY: 'cosign'
+          VAULT_ADDR: ${{ secrets.VAULT_URL }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          KMS_KEY: cosign
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           

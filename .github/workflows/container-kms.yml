@@ -17,8 +17,6 @@ jobs:
   ssca:
     name: ssca
     runs-on: ubuntu-latest
-    env:
-      PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/login-action@v3
@@ -34,10 +32,11 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          TOOL: ${{ vars.SBOM_TOOL }}
-          FORMAT: ${{ vars.SBOM_FORMAT }}
-          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SBOM_TOOL: ${{ vars.SBOM_TOOL }}
+          SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
           SOURCE_TYPE: docker
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
           ATTEST_SBOM: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
@@ -65,9 +64,9 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
-          SBOM_FILE_PATH: ${{ env.INGESTION_SBOM_FILE }}
           SOURCE_TYPE: docker
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
           ATTEST_SBOM: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
@@ -83,8 +82,8 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           VERIFY_SBOM: ${{ inputs.attest }}
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
@@ -111,8 +110,8 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
+          SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           ATTEST_SLSA: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
@@ -129,8 +128,8 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
+          SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           VERIFY_SLSA: "true"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
@@ -156,8 +155,8 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
+          SIGNING_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -172,8 +171,8 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
+          SIGNING_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}

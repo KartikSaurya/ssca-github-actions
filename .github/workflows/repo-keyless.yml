@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FULCIO_URL: ${{ vars.FULCIO_QA_URL }}
-      PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
       REPO_URL: ${{ vars.GIT_REPO_URL }}
       REPO_PATH: /
       REPO_VARIANT: ${{ vars.GIT_BRANCH }}
@@ -38,10 +37,11 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
+          SBOM_TOOL: ${{ vars.SBOM_TOOL }}
+          SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
           SOURCE_TYPE: repository
-          TOOL: ${{ vars.SBOM_TOOL }}
-          FORMAT: ${{ vars.SBOM_FORMAT }}
           SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
+          PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
           ATTEST_SBOM: "false"
           OIDC_PROVIDER: non-harness
 
@@ -66,7 +66,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: repository
           SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
-          SBOM_FILE_PATH: ${{ env.INGESTION_SBOM_FILE }}
+          PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
           ATTEST_SBOM: "false"
           OIDC_PROVIDER: non-harness
 

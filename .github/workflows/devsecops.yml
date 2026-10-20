@@ -97,17 +97,37 @@ jobs:
       - name: Run SBOM Orchestration Action
         uses: harness/github-actions/sbom-generation@SSCA-8414
         with:
-          TOOL: 'Syft'
-          FORMAT: 'spdx-json'
-          SBOM_SOURCE: 'kartikey366/nginx-private:github-actions'
+          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
+          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
+          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
+          SBOM_TOOL: Syft
+          SBOM_FORMAT: spdx-json
+          SOURCE_TYPE: docker
+          SBOM_SOURCE: kartikey366/nginx-private:github-actions
           ATTEST_SBOM: true
-          KMS_KEY: 'cosign'
+          VAULT_ADDR: ${{ secrets.VAULT_URL }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          KMS_KEY: cosign
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
       # Step 13: Run SBOM Policy Enforcement Action
       - name: Run SBOM Policy Enforcement Action
         uses: harness/github-actions/sbom-policy-enforcement@SSCA-8414
         with:
-          SBOM_SOURCE: 'kartikey366/nginx-private:github-actions'
+          HARNESS_ACCOUNT_URL: ${{ env.HARNESS_ACCOUNT_URL }}
+          HARNESS_ACCOUNT_ID: ${{ env.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG_ID: ${{ env.HARNESS_ORG_ID }}
+          HARNESS_PROJECT_ID: ${{ env.HARNESS_PROJECT_ID }}
+          HARNESS_API_KEY: ${{ env.HARNESS_API_KEY }}
+          SOURCE_TYPE: docker
+          SBOM_SOURCE: kartikey366/nginx-private:github-actions
           VERIFY_SBOM: true
-          KMS_KEY: 'cosign'
-          POLICY_SET_REF: 'opa_policy_set_for_at'
+          VAULT_ADDR: ${{ secrets.VAULT_URL }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          KMS_KEY: cosign
+          POLICY_SET_REF: opa_policy_set_for_at
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
