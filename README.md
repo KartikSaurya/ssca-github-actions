@@ -162,7 +162,7 @@ Do **not** set `OIDC_PROVIDER` when using Vault signing.
 |-------|------|---------|
 | Image | `SBOM_SOURCE` / `SLSA_SOURCE` / `SIGNING_SOURCE` | `docker.io/myorg/app:1.0.0` (repo var `DEVSECOPS_TARGET_IMAGE`) |
 | Registry auth | `DOCKER_USERNAME`, `DOCKER_PASSWORD` | GitHub Secrets |
-| SBOM output | `PLUGIN_SBOMDESTINATION` | Repo var `SBOM_LOCAL_PATH` (must be visible on runner **and** mounted into plugin—prefer under `${{ github.workspace }}`) |
+| SBOM output | `PLUGIN_SBOMDESTINATION` | Job env `${{ github.workspace }}/.ssca/sbom` (passed as action input `PLUGIN_SBOMDESTINATION`; plugin reads **PLUGIN_SBOMDESTINATION**, not `SBOM_LOCAL_PATH`) |
 | Harness | `HARNESS_*`, `SBOM_TOOL`, `SBOM_FORMAT` | Repository variables / secrets |
 
 ### Example flow ([`container-keyless.yml`](.github/workflows/container-keyless.yml))
@@ -196,7 +196,7 @@ jobs:
           SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
           SOURCE_TYPE: docker
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
-          PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
+          PLUGIN_SBOMDESTINATION: ${{ env.PLUGIN_SBOMDESTINATION }}
           ATTEST_SBOM: ${{ inputs.attest }}
           OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -205,9 +205,8 @@ jobs:
       # Resolves latest sbom_*.json for ingestion step
       - name: Resolve SBOM file for ingestion
         env:
-          SBOM_LOCAL_PATH: ${{ vars.SBOM_LOCAL_PATH }}
-        run: |
-          SBOM_FILE="$(ls -t "$SBOM_LOCAL_PATH"/sbom_*.json 2>/dev/null | head -1)"
+          run: |
+          SBOM_FILE="$(ls -t "$PLUGIN_SBOMDESTINATION"/sbom_*.json 2>/dev/null | head -1)"
           test -n "$SBOM_FILE"
           echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
 
@@ -275,7 +274,7 @@ steps:
       ARTIFACT_WORKSPACE: ${{ env.LOCAL_ARTIFACT }}
       ARTIFACT_NAME: scs-sample-app.zip
       ARTIFACT_VERSION: v1
-      PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
+      PLUGIN_SBOMDESTINATION: ${{ env.PLUGIN_SBOMDESTINATION }}
       OIDC_PROVIDER: non-harness
       ATTEST_SBOM: ${{ inputs.attest }}
       SBOM_TOOL: ${{ vars.SBOM_TOOL }}
@@ -331,7 +330,7 @@ jobs:
           SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
           SBOM_TOOL: ${{ vars.SBOM_TOOL }}
           SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
-          PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
+          PLUGIN_SBOMDESTINATION: ${{ env.PLUGIN_SBOMDESTINATION }}
           OIDC_PROVIDER: non-harness
           ATTEST_SBOM: "false"
           # ... HARNESS_*
@@ -358,7 +357,7 @@ Configure **Variables** and **Secrets** on this repository before dispatching wo
 | `HARNESS_QA_API_KEY` | Secret | API key |
 | `SBOM_TOOL` | Variable | e.g. `Syft` |
 | `SBOM_FORMAT` | Variable | e.g. `cyclonedx-json` |
-| `SBOM_LOCAL_PATH` | Variable | SBOM output directory on runner |
+| _(none — use job `env.PLUGIN_SBOMDESTINATION`)_ | — | SBOM output dir under workspace |
 | `OPA_QA_POLICY_SET_REF` | Variable | Policy set for enforce step |
 
 ### Container-specific
