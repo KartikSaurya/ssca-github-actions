@@ -99,7 +99,7 @@ jobs:
         with:
           TOOL: 'Syft'
           FORMAT: 'spdx-json'
-          SLSA_SOURCE: 'kartikey366/nginx-private:github-actions'
+          SBOM_SOURCE: 'kartikey366/nginx-private:github-actions'
           ATTEST: true
           KMS_KEY: 'cosign'
 
