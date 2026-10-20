@@ -42,6 +42,6 @@ jobs:
           TOOL: 'Syft'
           FORMAT: 'spdx-json'
           SBOM_SOURCE: 'reetika1999/ssca-manager:latest'
-          ATTEST: false
+          ATTEST_SBOM: false
           KMS_KEY: 'cosign'
           

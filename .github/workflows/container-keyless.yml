@@ -41,7 +41,7 @@ jobs:
           FORMAT: ${{ vars.SBOM_FORMAT }}
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          ATTEST: ${{ inputs.attest }}
+          ATTEST_SBOM: ${{ inputs.attest }}
           OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -68,7 +68,7 @@ jobs:
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SBOM_FILE_PATH: ${{ env.INGESTION_SBOM_FILE }}
           SOURCE_TYPE: docker
-          ATTEST: ${{ inputs.attest }}
+          ATTEST_SBOM: ${{ inputs.attest }}
           OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -83,7 +83,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          VERIFY: ${{ inputs.attest }}
+          VERIFY_SBOM: ${{ inputs.attest }}
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
           OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -111,7 +111,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          ATTEST: ${{ inputs.attest }}
+          ATTEST_SLSA: ${{ inputs.attest }}
           OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -127,7 +127,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          VERIFY: "true"
+          VERIFY_SLSA: "true"
           OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

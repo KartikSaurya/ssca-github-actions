@@ -41,7 +41,7 @@ jobs:
           TOOL: ${{ vars.SBOM_TOOL }}
           FORMAT: ${{ vars.SBOM_FORMAT }}
           SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
-          ATTEST: ${{ inputs.attest }}
+          ATTEST_SBOM: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -68,7 +68,7 @@ jobs:
           SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
           SBOM_FILE_PATH: ${{ env.INGESTION_SBOM_FILE }}
           SOURCE_TYPE: local
-          ATTEST: ${{ inputs.attest }}
+          ATTEST_SBOM: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -83,7 +83,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
           SOURCE_TYPE: local
-          VERIFY: ${{ inputs.attest }}
+          VERIFY_SBOM: ${{ inputs.attest }}
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
@@ -110,7 +110,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: local
           SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
-          ATTEST: ${{ inputs.attest }}
+          ATTEST_SLSA: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -126,7 +126,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: local
           SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
-          VERIFY: "true"
+          VERIFY_SLSA: "true"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}

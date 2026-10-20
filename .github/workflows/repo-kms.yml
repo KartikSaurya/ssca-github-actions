@@ -40,7 +40,7 @@ jobs:
           TOOL: ${{ vars.SBOM_TOOL }}
           FORMAT: ${{ vars.SBOM_FORMAT }}
           SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
-          ATTEST: "false"
+          ATTEST_SBOM: "false"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -67,7 +67,7 @@ jobs:
           SOURCE_TYPE: repository
           SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
           SBOM_FILE_PATH: ${{ env.INGESTION_SBOM_FILE }}
-          ATTEST: "false"
+          ATTEST_SBOM: "false"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -82,7 +82,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: repository
           SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
-          VERIFY: "false"
+          VERIFY_SBOM: "false"
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}

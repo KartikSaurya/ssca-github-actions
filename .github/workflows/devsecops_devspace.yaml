@@ -66,7 +66,7 @@ jobs:
         uses: harness/github-actions/slsa-generation@SSCA-8414
         with:
           SLSA_SOURCE: 'kartikey366/nginx:github-actions'
-          ATTEST: false
+          ATTEST_SLSA: false
           KMS_KEY: 'cosign'
 
       # Step 9: Run SBOM Orchestration Action
@@ -76,7 +76,7 @@ jobs:
           TOOL: 'Syft'
           FORMAT: 'spdx-json'
           SBOM_SOURCE: 'kartikey366/nginx:github-actions'
-          ATTEST: false
+          ATTEST_SBOM: false
           KMS_KEY: 'cosign'
 
       # # Step 10: Run SBOM Policy Enforcement
@@ -84,6 +84,6 @@ jobs:
         uses: harness/github-actions/sbom-policy-enforcement@SSCA-8414
         with:
           SBOM_SOURCE: 'kartikey366/nginx:github-actions'
-          VERIFY: false
+          VERIFY_SBOM: false
           KMS_KEY: 'cosign'
           POLICY_SET_REF: 'opa_policy_set_for_at'

@@ -38,6 +38,6 @@ jobs:
           HARNESS_ORG_ID: 'SSCA'
           HARNESS_PROJECT_ID: 'SSCA_Sanity_Automation'
           SLSA_SOURCE: 'reetika1999/ssca-manager:latest'
-          ATTEST: true
+          ATTEST_SLSA: true
           KMS_KEY: 'cosign'
           
