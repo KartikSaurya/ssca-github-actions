@@ -39,12 +39,14 @@ flowchart LR
   A --> B --> C --> D
 ```
 
-1. Your job references a marketplace composite (for example `sbom-generation@main`).
+1. Your job references a marketplace composite (for example `sbom-generation@SSCA-8414`).
 2. The composite delegates to **`run-plugin-container`**, which may fetch a **GitHub OIDC** token when `OIDC_PROVIDER: non-harness`.
 3. A pinned **Docker plugin** runs with a fixed **CLI subcommand** (`github-orchestrate`, `github-enforce`, …).
 4. Results and metadata are stored in your Harness account (SBOM, provenance, enforcement, signing records).
 
-This repository contains **workflows only**—not copies of the composites. Pin `@main` for latest, or a release tag (for example `@1.2.0`) in production.
+This repository contains **workflows only**—not copies of the composites.
+
+> **Action ref:** Workflows pin **`harness/github-actions@SSCA-8414`** ([PR #10](https://github.com/harness/github-actions/pull/10)) until the marketplace changes merge to `main`. After release, switch to `@main` or a version tag (for example `@1.2.0`).
 
 ---
 
@@ -122,7 +124,7 @@ env:
   FULCIO_URL: ${{ vars.FULCIO_QA_URL }}
 
 steps:
-  - uses: harness/github-actions/sbom-generation@main
+  - uses: harness/github-actions/sbom-generation@SSCA-8414
     with:
       OIDC_PROVIDER: non-harness
       ATTEST_SBOM: true
@@ -135,7 +137,7 @@ steps:
 
 ```yaml
 steps:
-  - uses: harness/github-actions/sbom-generation@main
+  - uses: harness/github-actions/sbom-generation@SSCA-8414
     with:
       ATTEST_SBOM: true
       KMS_KEY: SSCA_AUTOMATION_COSIGN_KEY
@@ -183,7 +185,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: SBOM generation
-        uses: harness/github-actions/sbom-generation@main
+        uses: harness/github-actions/sbom-generation@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -210,7 +212,7 @@ jobs:
           echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
 
       - name: SBOM ingestion
-        uses: harness/github-actions/sbom-ingestion@main
+        uses: harness/github-actions/sbom-ingestion@SSCA-8414
         with:
           SOURCE_TYPE: docker
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
@@ -220,7 +222,7 @@ jobs:
           # ... same HARNESS_* and DOCKER_*
 
       - name: SBOM policy enforcement
-        uses: harness/github-actions/sbom-policy-enforcement@main
+        uses: harness/github-actions/sbom-policy-enforcement@SSCA-8414
         with:
           SOURCE_TYPE: docker
           SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
@@ -266,7 +268,7 @@ steps:
   - uses: actions/checkout@v4
   - uses: ./.github/actions/prepare-non-container-artifact
 
-  - uses: harness/github-actions/sbom-generation@main
+  - uses: harness/github-actions/sbom-generation@SSCA-8414
     with:
       SOURCE_TYPE: local
       SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
@@ -323,7 +325,7 @@ jobs:
           ref: ${{ vars.GIT_BRANCH }}
           path: sample-repo
 
-      - uses: harness/github-actions/sbom-generation@main
+      - uses: harness/github-actions/sbom-generation@SSCA-8414
         with:
           SOURCE_TYPE: repository
           SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
@@ -391,7 +393,7 @@ Configure **Variables** and **Secrets** on this repository before dispatching wo
 
 ## Run a workflow
 
-1. Confirm **[harness/github-actions](https://github.com/harness/github-actions)** composites exist at the ref you pin (`@main` or a release tag).
+1. Confirm **[harness/github-actions](https://github.com/harness/github-actions)** composites exist at the ref you pin (`@SSCA-8414` or a release tag).
 2. Set variables and secrets above.
 3. In GitHub: **Actions** → choose **container-keyless**, **non-container-kms**, **repo-keyless**, etc.
 4. Click **Run workflow** → set **attest** if the workflow supports it → **Run**.
