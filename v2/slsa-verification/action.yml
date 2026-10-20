@@ -29,7 +29,7 @@ inputs:
     default: "true"
   COSIGN_PUBLIC_KEY:
     required: false
-  PLUGIN_KEYLESS_TYPE:
+  OIDC_PROVIDER:
     required: false
   DOCKER_USERNAME:
     required: false
@@ -69,7 +69,7 @@ runs:
         SOURCE_TYPE: ${{ inputs.SOURCE_TYPE }}
         VERIFY_SLSA: ${{ inputs.VERIFY_SLSA }}
         SSCA_SLSA_VERIFICATION_COSIGN_PUBLIC_KEY: ${{ inputs.COSIGN_PUBLIC_KEY }}
-        PLUGIN_KEYLESS_TYPE: ${{ inputs.PLUGIN_KEYLESS_TYPE }}
+        OIDC_PROVIDER: ${{ inputs.OIDC_PROVIDER }}
         VAULT_ADDR: ${{ inputs.VAULT_ADDR }}
         VAULT_TOKEN: ${{ inputs.VAULT_TOKEN }}
         KMS_KEY: ${{ inputs.KMS_KEY }}
@@ -83,7 +83,7 @@ runs:
         ARTIFACT_VERSION: ${{ inputs.ARTIFACT_VERSION }}
       run: |
         set -euo pipefail
-        if [ "${PLUGIN_KEYLESS_TYPE:-}" = "non-harness" ]; then
+        if [ "${OIDC_PROVIDER:-}" = "non-harness" ]; then
           if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
             echo "keyless verification requires 'permissions: id-token: write' in the calling workflow" >&2
             exit 1

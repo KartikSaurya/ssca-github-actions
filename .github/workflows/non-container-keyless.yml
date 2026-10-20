@@ -42,7 +42,7 @@ jobs:
           SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
           PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
           ATTEST_SBOM: ${{ inputs.attest }}
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
 
       - name: Resolve SBOM file for ingestion
         env:
@@ -70,7 +70,7 @@ jobs:
           ARTIFACT_VERSION: v1
           PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
           ATTEST_SBOM: ${{ inputs.attest }}
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
 
       - name: SBOM policy enforcement (enforce)
         uses: ./v2/sbom-policy-enforcement
@@ -87,7 +87,7 @@ jobs:
           ARTIFACT_VERSION: v1
           VERIFY_SBOM: ${{ inputs.attest }}
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
 
   slsa:
     name: slsa
@@ -112,7 +112,7 @@ jobs:
           ARTIFACT_NAME: scs-sample-app.zip
           ARTIFACT_VERSION: v1
           ATTEST_SLSA: ${{ inputs.attest }}
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
 
       - name: SLSA verification
         if: ${{ inputs.attest }}
@@ -129,7 +129,7 @@ jobs:
           ARTIFACT_NAME: scs-sample-app.zip
           ARTIFACT_VERSION: v1
           VERIFY_SLSA: "true"
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
 
   artifact-signing:
     name: artifact-signing
@@ -153,7 +153,7 @@ jobs:
           PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           ARTIFACT_NAME: scs-sample-app.zip
           ARTIFACT_VERSION: v1
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
 
       - name: Artifact verification
         uses: ./v2/artifact-verification
@@ -168,4 +168,4 @@ jobs:
           PLUGIN_WORKSPACE: ${{ github.workspace }}/artifacts/scs-sample-app.zip
           ARTIFACT_NAME: scs-sample-app.zip
           ARTIFACT_VERSION: v1
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness

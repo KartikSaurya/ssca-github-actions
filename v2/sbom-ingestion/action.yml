@@ -34,7 +34,7 @@ inputs:
     required: false
   COSIGN_PASSWORD:
     required: false
-  PLUGIN_KEYLESS_TYPE:
+  OIDC_PROVIDER:
     required: false
   DOCKER_USERNAME:
     required: false
@@ -77,7 +77,7 @@ runs:
         ATTEST_SBOM: ${{ inputs.ATTEST_SBOM }}
         SSCA_ORCHESTRATION_COSIGN_PRIVATE_KEY: ${{ inputs.COSIGN_PRIVATE_KEY }}
         SSCA_ORCHESTRATION_COSIGN_PASSWORD: ${{ inputs.COSIGN_PASSWORD }}
-        PLUGIN_KEYLESS_TYPE: ${{ inputs.PLUGIN_KEYLESS_TYPE }}
+        OIDC_PROVIDER: ${{ inputs.OIDC_PROVIDER }}
         VAULT_ADDR: ${{ inputs.VAULT_ADDR }}
         VAULT_TOKEN: ${{ inputs.VAULT_TOKEN }}
         KMS_KEY: ${{ inputs.KMS_KEY }}
@@ -91,7 +91,7 @@ runs:
         ARTIFACT_VERSION: ${{ inputs.ARTIFACT_VERSION }}
       run: |
         set -euo pipefail
-        if [ "${PLUGIN_KEYLESS_TYPE:-}" = "non-harness" ]; then
+        if [ "${OIDC_PROVIDER:-}" = "non-harness" ]; then
           if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
             echo "keyless signing requires 'permissions: id-token: write' in the calling workflow" >&2
             exit 1

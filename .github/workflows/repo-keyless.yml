@@ -42,7 +42,7 @@ jobs:
           SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
           PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
           ATTEST_SBOM: "false"
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
 
       - name: Resolve SBOM file for ingestion
         env:
@@ -73,7 +73,7 @@ jobs:
           SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
           PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
           ATTEST_SBOM: "false"
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
 
       - name: Repository SBOM policy enforcement (enforce)
         uses: ./v2/sbom-policy-enforcement
@@ -92,4 +92,4 @@ jobs:
           REPO_CLONED_CODEBASE: ${{ github.workspace }}/sample-repo
           VERIFY_SBOM: "false"
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness

@@ -42,7 +42,7 @@ jobs:
           SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
           PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
           ATTEST_SBOM: ${{ inputs.attest }}
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -69,7 +69,7 @@ jobs:
           SOURCE_TYPE: docker
           PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
           ATTEST_SBOM: ${{ inputs.attest }}
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -85,7 +85,7 @@ jobs:
           SOURCE_TYPE: docker
           VERIFY_SBOM: ${{ inputs.attest }}
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -112,7 +112,7 @@ jobs:
           SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           ATTEST_SLSA: ${{ inputs.attest }}
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -128,7 +128,7 @@ jobs:
           SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           VERIFY_SLSA: "true"
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -154,7 +154,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SIGNING_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -168,6 +168,6 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SIGNING_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          PLUGIN_KEYLESS_TYPE: non-harness
+          OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
