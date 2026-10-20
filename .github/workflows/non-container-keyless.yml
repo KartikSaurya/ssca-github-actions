@@ -43,7 +43,7 @@ jobs:
           SOURCE_TYPE: local
           TOOL: ${{ vars.SBOM_TOOL }}
           FORMAT: ${{ vars.SBOM_FORMAT }}
-          TARGET: ${{ env.LOCAL_ARTIFACT }}
+          SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
           ATTEST: ${{ inputs.attest }}
           OIDC_PROVIDER: non-harness
 
@@ -66,7 +66,7 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          TARGET: ${{ env.LOCAL_ARTIFACT }}
+          SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
           SBOM_FILE_PATH: ${{ env.INGESTION_SBOM_FILE }}
           SOURCE_TYPE: local
           ATTEST: ${{ inputs.attest }}
@@ -80,7 +80,7 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          TARGET: ${{ env.LOCAL_ARTIFACT }}
+          SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
           SOURCE_TYPE: local
           VERIFY: ${{ inputs.attest }}
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
@@ -107,7 +107,7 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: local
-          TARGET: ${{ env.LOCAL_ARTIFACT }}
+          SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
           ATTEST: ${{ inputs.attest }}
           OIDC_PROVIDER: non-harness
 
@@ -121,7 +121,7 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: local
-          TARGET: ${{ env.LOCAL_ARTIFACT }}
+          SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
           VERIFY: "true"
           OIDC_PROVIDER: non-harness
 
@@ -146,7 +146,7 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: local
-          TARGET: ${{ env.LOCAL_ARTIFACT }}
+          SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
           OIDC_PROVIDER: non-harness
 
       - name: Artifact verification
@@ -158,5 +158,5 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: local
-          TARGET: ${{ env.LOCAL_ARTIFACT }}
+          SBOM_SOURCE: ${{ env.LOCAL_ARTIFACT }}
           OIDC_PROVIDER: non-harness

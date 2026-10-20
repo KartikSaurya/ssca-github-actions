@@ -39,7 +39,7 @@ jobs:
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           TOOL: ${{ vars.SBOM_TOOL }}
           FORMAT: ${{ vars.SBOM_FORMAT }}
-          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           ATTEST: ${{ inputs.attest }}
           OIDC_PROVIDER: non-harness
@@ -65,7 +65,7 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SBOM_FILE_PATH: ${{ env.INGESTION_SBOM_FILE }}
           SOURCE_TYPE: docker
           ATTEST: ${{ inputs.attest }}
@@ -81,7 +81,7 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           VERIFY: ${{ inputs.attest }}
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
@@ -109,7 +109,7 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           ATTEST: ${{ inputs.attest }}
           OIDC_PROVIDER: non-harness
@@ -125,7 +125,7 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           VERIFY: "true"
           OIDC_PROVIDER: non-harness
@@ -152,7 +152,7 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
@@ -166,7 +166,7 @@ jobs:
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           OIDC_PROVIDER: non-harness
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}

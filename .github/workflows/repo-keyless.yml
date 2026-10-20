@@ -41,7 +41,7 @@ jobs:
           SOURCE_TYPE: repository
           TOOL: ${{ vars.SBOM_TOOL }}
           FORMAT: ${{ vars.SBOM_FORMAT }}
-          TARGET: ${{ vars.GIT_REPO_URL }}
+          SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
           ATTEST: "false"
           OIDC_PROVIDER: non-harness
 
@@ -65,7 +65,7 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: repository
-          TARGET: ${{ vars.GIT_REPO_URL }}
+          SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
           SBOM_FILE_PATH: ${{ env.INGESTION_SBOM_FILE }}
           ATTEST: "false"
           OIDC_PROVIDER: non-harness
@@ -79,7 +79,7 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: repository
-          TARGET: ${{ vars.GIT_REPO_URL }}
+          SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
           VERIFY: "false"
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
           OIDC_PROVIDER: non-harness

@@ -65,7 +65,7 @@ jobs:
       - name: Run SLSA Provenance Action
         uses: harness/github-actions/slsa-generation@SSCA-8414
         with:
-          TARGET: 'kartikey366/nginx:github-actions'
+          SLSA_SOURCE: 'kartikey366/nginx:github-actions'
           ATTEST: false
           KMS_KEY: 'cosign'
 
@@ -75,7 +75,7 @@ jobs:
         with:
           TOOL: 'Syft'
           FORMAT: 'spdx-json'
-          TARGET: 'kartikey366/nginx:github-actions'
+          SLSA_SOURCE: 'kartikey366/nginx:github-actions'
           ATTEST: false
           KMS_KEY: 'cosign'
 
@@ -83,7 +83,7 @@ jobs:
       - name: Run SBOM Policy Enforcement Action
         uses: harness/github-actions/sbom-policy-enforcement@SSCA-8414
         with:
-          TARGET: 'kartikey366/nginx:github-actions'
+          SLSA_SOURCE: 'kartikey366/nginx:github-actions'
           VERIFY: false
           KMS_KEY: 'cosign'
           POLICY_SET_REF: 'opa_policy_set_for_at'

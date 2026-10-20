@@ -41,7 +41,7 @@ jobs:
           HARNESS_PROJECT_ID: 'SSCA_Sanity_Automation'
           TOOL: 'Syft'
           FORMAT: 'spdx-json'
-          TARGET: 'reetika1999/ssca-manager:latest'
+          SBOM_SOURCE: 'reetika1999/ssca-manager:latest'
           ATTEST: false
           KMS_KEY: 'cosign'
           
