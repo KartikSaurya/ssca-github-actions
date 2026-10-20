@@ -32,7 +32,7 @@ jobs:
           echo "VAULT_TOKEN=${{ steps.vault_login.outputs.token }}" >> $GITHUB_ENV
           
       - name: Run SSCA Plugin Action
-        uses: ./sbom-orchestration
+        uses: harness/github-actions/sbom-generation@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: 'https://reetika.pr2.harness.io'
           HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}

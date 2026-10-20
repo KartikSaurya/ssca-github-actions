@@ -1,6 +1,4 @@
-# Container V2 E2E on QA.
-# - SSCA plugin job: generation → ingestion → policy enforcement (sequential steps).
-# - SLSA and artifact-signing jobs run in parallel; each runs its subcommands sequentially.
+# Container E2E on QA — harness/github-actions (Vault KMS). Pin @1.2.0 after release.
 name: "V2 container-kms"
 
 on:
@@ -19,6 +17,8 @@ jobs:
   ssca:
     name: ssca
     runs-on: ubuntu-latest
+    env:
+      PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/login-action@v3
@@ -27,19 +27,18 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: SBOM generation (orchestrate)
-        uses: ./v2/sbom-generation
+        uses: harness/github-actions/sbom-generation@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          TOOL: ${{ vars.SBOM_TOOL }}
+          FORMAT: ${{ vars.SBOM_FORMAT }}
+          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          SBOM_TOOL: ${{ vars.SBOM_TOOL }}
-          SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
-          PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
-          ATTEST_SBOM: ${{ inputs.attest }}
+          ATTEST: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -59,17 +58,17 @@ jobs:
           echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
 
       - name: SBOM ingestion (orchestrate)
-        uses: ./v2/sbom-ingestion
+        uses: harness/github-actions/sbom-ingestion@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          SBOM_FILE_PATH: ${{ env.INGESTION_SBOM_FILE }}
           SOURCE_TYPE: docker
-          PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
-          ATTEST_SBOM: ${{ inputs.attest }}
+          ATTEST: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -77,16 +76,16 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: SBOM policy enforcement (enforce)
-        uses: ./v2/sbom-policy-enforcement
+        uses: harness/github-actions/sbom-policy-enforcement@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SBOM_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          VERIFY_SBOM: ${{ inputs.attest }}
+          VERIFY: ${{ inputs.attest }}
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
@@ -105,16 +104,16 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: SLSA provenance (attest)
-        uses: ./v2/slsa-generation
+        uses: harness/github-actions/slsa-generation@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          ATTEST_SLSA: ${{ inputs.attest }}
+          ATTEST: ${{ inputs.attest }}
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -123,16 +122,16 @@ jobs:
 
       - name: SLSA verification
         if: ${{ inputs.attest }}
-        uses: ./v2/slsa-verification
+        uses: harness/github-actions/slsa-verification@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SLSA_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
-          VERIFY_SLSA: "true"
+          VERIFY: "true"
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
           KMS_KEY: ${{ vars.KMS_KEY }}
@@ -150,14 +149,14 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Artifact signing
-        uses: ./v2/artifact-signing
+        uses: harness/github-actions/artifact-signing@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SIGNING_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
@@ -166,14 +165,14 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Artifact verification
-        uses: ./v2/artifact-verification
+        uses: harness/github-actions/artifact-verification@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          SIGNING_SOURCE: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
+          TARGET: ${{ vars.DEVSECOPS_TARGET_IMAGE }}
           SOURCE_TYPE: docker
           VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}

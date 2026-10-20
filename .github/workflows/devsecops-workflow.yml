@@ -62,7 +62,7 @@ jobs:
 
       # Step 8: Run SLSA Provenance Action
       - name: Run SLSA Provenance Action
-        uses: ./slsa-generation
+        uses: harness/github-actions/slsa-generation@SSCA-8414
         with:
           TARGET: 'reetika1999/devsecops:latest'
           ATTEST: false
@@ -70,7 +70,7 @@ jobs:
 
       # Step 9: Run SBOM Orchestration Action
       - name: Run SBOM Orchestration Action
-        uses: ./sbom-generation
+        uses: harness/github-actions/sbom-generation@SSCA-8414
         with:
           TOOL: 'Syft'
           FORMAT: 'spdx-json'
@@ -80,7 +80,7 @@ jobs:
 
       # Step 10: Run SBOM Policy Enforcement
       - name: Run SBOM Policy Enforcement Action
-        uses: ./sbom-policy-enforcement
+        uses: harness/github-actions/sbom-policy-enforcement@SSCA-8414
         with:
           TARGET: 'reetika1999/devsecops:latest'
           VERIFY: false

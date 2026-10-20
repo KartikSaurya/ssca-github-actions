@@ -1,5 +1,4 @@
-# Repository V2 E2E on QA.
-# Repository SBOM attestation is unsupported; generation, ingestion, and enforcement run sequentially.
+# Repository E2E on QA — harness/github-actions (keyless). Pin @1.2.0 after release.
 name: "V2 repo-keyless"
 
 on:
@@ -15,6 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FULCIO_URL: ${{ vars.FULCIO_QA_URL }}
+      PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
+      REPO_URL: ${{ vars.GIT_REPO_URL }}
+      REPO_PATH: /
+      REPO_VARIANT: ${{ vars.GIT_BRANCH }}
+      REPO_VARIANT_TYPE: branch
+      REPO_CLONED_CODEBASE: ${{ github.workspace }}/sample-repo
     steps:
       - uses: actions/checkout@v4
 
@@ -26,22 +31,18 @@ jobs:
           path: sample-repo
 
       - name: Repository SBOM generation (orchestrate)
-        uses: ./v2/repo-sbom-generation
+        uses: harness/github-actions/sbom-generation@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
           HARNESS_ACCOUNT_ID: ${{ vars.HARNESS_QA_ACCOUNT_ID }}
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
-          REPO_URL: ${{ vars.GIT_REPO_URL }}
-          REPO_PATH: /
-          REPO_VARIANT: ${{ vars.GIT_BRANCH }}
-          REPO_VARIANT_TYPE: branch
-          REPO_CLONED_CODEBASE: ${{ github.workspace }}/sample-repo
-          SBOM_TOOL: ${{ vars.SBOM_TOOL }}
-          SBOM_FORMAT: ${{ vars.SBOM_FORMAT }}
-          PLUGIN_SBOMDESTINATION: ${{ vars.SBOM_LOCAL_PATH }}
-          ATTEST_SBOM: "false"
+          SOURCE_TYPE: repository
+          TOOL: ${{ vars.SBOM_TOOL }}
+          FORMAT: ${{ vars.SBOM_FORMAT }}
+          TARGET: ${{ vars.GIT_REPO_URL }}
+          ATTEST: "false"
           OIDC_PROVIDER: non-harness
 
       - name: Resolve SBOM file for ingestion
@@ -56,13 +57,7 @@ jobs:
           echo "INGESTION_SBOM_FILE=$SBOM_FILE" >> "$GITHUB_ENV"
 
       - name: Repository SBOM ingestion (orchestrate)
-        uses: ./v2/sbom-ingestion
-        env:
-          REPO_URL: ${{ vars.GIT_REPO_URL }}
-          REPO_PATH: /
-          REPO_VARIANT: ${{ vars.GIT_BRANCH }}
-          REPO_VARIANT_TYPE: branch
-          REPO_CLONED_CODEBASE: ${{ github.workspace }}/sample-repo
+        uses: harness/github-actions/sbom-ingestion@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -70,13 +65,13 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: repository
-          SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
-          PLUGIN_SBOMDESTINATION: ${{ env.INGESTION_SBOM_FILE }}
-          ATTEST_SBOM: "false"
+          TARGET: ${{ vars.GIT_REPO_URL }}
+          SBOM_FILE_PATH: ${{ env.INGESTION_SBOM_FILE }}
+          ATTEST: "false"
           OIDC_PROVIDER: non-harness
 
       - name: Repository SBOM policy enforcement (enforce)
-        uses: ./v2/sbom-policy-enforcement
+        uses: harness/github-actions/sbom-policy-enforcement@SSCA-8414
         with:
           HARNESS_ACCOUNT_URL: ${{ vars.HARNESS_QA_ACCOUNT_URL }}
           HARNESS_API_KEY: ${{ secrets.HARNESS_QA_API_KEY }}
@@ -84,12 +79,7 @@ jobs:
           HARNESS_ORG_ID: ${{ vars.HARNESS_QA_ORG_ID }}
           HARNESS_PROJECT_ID: ${{ vars.HARNESS_QA_PROJECT_ID }}
           SOURCE_TYPE: repository
-          SBOM_SOURCE: ${{ vars.GIT_REPO_URL }}
-          REPO_URL: ${{ vars.GIT_REPO_URL }}
-          REPO_PATH: /
-          REPO_VARIANT: ${{ vars.GIT_BRANCH }}
-          REPO_VARIANT_TYPE: branch
-          REPO_CLONED_CODEBASE: ${{ github.workspace }}/sample-repo
-          VERIFY_SBOM: "false"
+          TARGET: ${{ vars.GIT_REPO_URL }}
+          VERIFY: "false"
           POLICY_SET_REF: ${{ vars.OPA_QA_POLICY_SET_REF }}
           OIDC_PROVIDER: non-harness
