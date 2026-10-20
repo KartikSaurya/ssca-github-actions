@@ -56,13 +56,13 @@ Each marketplace action maps to **one container image** and **one entrypoint sub
 
 | Marketplace action | Docker image | Entrypoint | Subcommand | Extra env |
 |--------------------|--------------|------------|------------|-----------|
-| [`sbom-generation`](https://github.com/harness/github-actions/tree/main/sbom-generation) | `harness/ssca-plugin:0.69.0` | `/bin/ssca-plugin` | **`github-orchestrate`** | `PLUGIN_MODE=generation` |
-| [`sbom-ingestion`](https://github.com/harness/github-actions/tree/main/sbom-ingestion) | `harness/ssca-plugin:0.69.0` | `/bin/ssca-plugin` | **`github-orchestrate`** | `PLUGIN_MODE=ingestion` |
-| [`sbom-policy-enforcement`](https://github.com/harness/github-actions/tree/main/sbom-policy-enforcement) | `harness/ssca-plugin:0.69.0` | `/bin/ssca-plugin` | **`github-enforce`** | — |
-| [`slsa-generation`](https://github.com/harness/github-actions/tree/main/slsa-generation) | `harness/slsa-plugin:0.69.0` | `/bin/slsa-plugin` | **`github-provenance`** | `ATTEST_SLSA` when attesting |
-| [`slsa-verification`](https://github.com/harness/github-actions/tree/main/slsa-verification) | `harness/slsa-plugin:0.69.0` | `/bin/slsa-plugin` | **`github-slsa-verification`** | `VERIFY_SLSA` |
-| [`artifact-signing`](https://github.com/harness/github-actions/tree/main/artifact-signing) | `harness/ssca-artifact-signing-plugin:0.69.0` | `/bin/ssca-artifact-signing-plugin` | **`github-sign`** | — |
-| [`artifact-verification`](https://github.com/harness/github-actions/tree/main/artifact-verification) | `harness/ssca-artifact-signing-plugin:0.69.0` | `/bin/ssca-artifact-signing-plugin` | **`github-verify`** | — |
+| [`sbom-generation`](https://github.com/harness/github-actions/tree/main/sbom-generation) | `harness/ssca-plugin:0.70.0` | `/bin/ssca-plugin` | **`github-orchestrate`** | `PLUGIN_MODE=generation` |
+| [`sbom-ingestion`](https://github.com/harness/github-actions/tree/main/sbom-ingestion) | `harness/ssca-plugin:0.70.0` | `/bin/ssca-plugin` | **`github-orchestrate`** | `PLUGIN_MODE=ingestion` |
+| [`sbom-policy-enforcement`](https://github.com/harness/github-actions/tree/main/sbom-policy-enforcement) | `harness/ssca-plugin:0.70.0` | `/bin/ssca-plugin` | **`github-enforce`** | — |
+| [`slsa-generation`](https://github.com/harness/github-actions/tree/main/slsa-generation) | `harness/slsa-plugin:0.70.0` | `/bin/slsa-plugin` | **`github-attest`** | `ATTEST_SLSA` when attesting |
+| [`slsa-verification`](https://github.com/harness/github-actions/tree/main/slsa-verification) | `harness/slsa-plugin:0.70.0` | `/bin/slsa-plugin` | **`github-verify`** | `VERIFY_SLSA` |
+| [`artifact-signing`](https://github.com/harness/github-actions/tree/main/artifact-signing) | `harness/ssca-artifact-signing-plugin:0.70.0` | `/bin/ssca-artifact-signing-plugin` | **`github-sign`** | — |
+| [`artifact-verification`](https://github.com/harness/github-actions/tree/main/artifact-verification) | `harness/ssca-artifact-signing-plugin:0.70.0` | `/bin/ssca-artifact-signing-plugin` | **`github-verify`** | — |
 
 ### Typical SSCA job sequence (all artifact types)
 
@@ -72,8 +72,8 @@ sbom-generation (github-orchestrate, generation)
     → sbom-ingestion (github-orchestrate, ingestion)
     → sbom-policy-enforcement (github-enforce)
 
-slsa-generation (github-provenance)
-    → slsa-verification (github-slsa-verification)   [when attest enabled]
+slsa-generation (github-attest)
+    → slsa-verification (github-verify)   [when attest enabled]
 
 artifact-signing (github-sign)
     → artifact-verification (github-verify)
@@ -393,7 +393,7 @@ Configure **Variables** and **Secrets** on this repository before dispatching wo
 
 ## Run a workflow
 
-1. Confirm **[harness/github-actions](https://github.com/harness/github-actions)** composites exist at the ref you pin (`@SSCA-8414` or a release tag).
+1. Confirm **[harness/github-actions](https://github.com/harness/github-actions/tree/SSCA-8414)** branch **`SSCA-8414`** is available (or update pins after [PR #10](https://github.com/harness/github-actions/pull/10) merges).
 2. Set variables and secrets above.
 3. In GitHub: **Actions** → choose **container-keyless**, **non-container-kms**, **repo-keyless**, etc.
 4. Click **Run workflow** → set **attest** if the workflow supports it → **Run**.
