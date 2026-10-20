@@ -1,4 +1,4 @@
-# Container V2 E2E on QA using GitHub OIDC keyless signing.
+# Container V2 E2E using GitHub OIDC keyless signing (set repo variable FULCIO_URL).
 # Plugin jobs run in parallel; each plugin's subcommands run sequentially.
 name: "V2 container-keyless"
 
@@ -20,7 +20,7 @@ jobs:
     name: ssca
     runs-on: ubuntu-latest
     env:
-      FULCIO_URL: ${{ vars.FULCIO_QA_URL }}
+      FULCIO_URL: ${{ vars.FULCIO_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/login-action@v3
@@ -93,7 +93,7 @@ jobs:
     name: slsa
     runs-on: ubuntu-latest
     env:
-      FULCIO_URL: ${{ vars.FULCIO_QA_URL }}
+      FULCIO_URL: ${{ vars.FULCIO_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/login-action@v3
@@ -136,7 +136,7 @@ jobs:
     name: artifact-signing
     runs-on: ubuntu-latest
     env:
-      FULCIO_URL: ${{ vars.FULCIO_QA_URL }}
+      FULCIO_URL: ${{ vars.FULCIO_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/login-action@v3
